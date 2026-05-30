@@ -1,12 +1,17 @@
 "use client";
 
-import { X, Plus, FolderOpen } from "lucide-react";
+import { Pencil, Trash2, X, Plus, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { Project } from "@/lib/mock-projects";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  projects: Project[];
+  onNewProject: () => void;
+  onRenameProject: (project: Project) => void;
+  onDeleteProject: (project: Project) => void;
 }
 
 function EmptyPlaceholder({ label }: { label: string }) {
@@ -20,13 +25,63 @@ function EmptyPlaceholder({ label }: { label: string }) {
   );
 }
 
-export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
+function ProjectItem({
+  project,
+  onRename,
+  onDelete,
+}: {
+  project: Project;
+  onRename?: () => void;
+  onDelete?: () => void;
+}) {
+  return (
+    <div className="group/item flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-(--color-bg-elevated) transition-colors">
+      <span className="flex-1 truncate text-sm text-(--color-text-secondary) group-hover/item:text-(--color-text-primary)">
+        {project.name}
+      </span>
+      {onRename && onDelete && (
+        <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={(e) => { e.stopPropagation(); onRename(); }}
+            className="h-6 w-6 text-(--color-text-muted) hover:text-(--color-text-primary)"
+            aria-label={`Rename ${project.name}`}
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="h-6 w-6 text-(--color-text-muted) hover:text-destructive"
+            aria-label={`Delete ${project.name}`}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ProjectSidebar({
+  isOpen,
+  onClose,
+  projects,
+  onNewProject,
+  onRenameProject,
+  onDeleteProject,
+}: ProjectSidebarProps) {
+  const ownedProjects = projects.filter((p) => p.owned);
+  const sharedProjects = projects.filter((p) => !p.owned);
+
   return (
     <>
-      {/* Overlay — closes sidebar on click but doesn't block content */}
+      {/* Backdrop — visible scrim on mobile, transparent on desktop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-40 bg-black/50 sm:bg-transparent"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -72,11 +127,32 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
             </TabsList>
 
             <TabsContent value="my-projects" className="mt-2 flex-1 overflow-y-auto">
-              <EmptyPlaceholder label="projects" />
+              {ownedProjects.length === 0 ? (
+                <EmptyPlaceholder label="projects" />
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  {ownedProjects.map((project) => (
+                    <ProjectItem
+                      key={project.id}
+                      project={project}
+                      onRename={() => onRenameProject(project)}
+                      onDelete={() => onDeleteProject(project)}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="shared" className="mt-2 flex-1 overflow-y-auto">
-              <EmptyPlaceholder label="shared projects" />
+              {sharedProjects.length === 0 ? (
+                <EmptyPlaceholder label="shared projects" />
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  {sharedProjects.map((project) => (
+                    <ProjectItem key={project.id} project={project} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -86,6 +162,7 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
           <Button
             variant="outline"
             className="w-full gap-2 border-(--color-border-subtle) bg-transparent text-sm text-(--color-text-secondary) hover:border-(--color-accent-primary) hover:text-(--color-accent-primary) hover:bg-(--color-accent-primary-dim)"
+            onClick={onNewProject}
           >
             <Plus className="h-4 w-4" />
             New Project
