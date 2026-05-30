@@ -43,20 +43,35 @@ BODY="${3:-}"
 METHOD_UPPER=$(echo "$METHOD" | tr '[:lower:]' '[:upper:]')
 SCOPES="${CLERK_BAPI_SCOPES:-}"
 
+scope_has() {
+  local token="$1" part
+  IFS=',' read -ra _scope_parts <<< "$SCOPES"
+  for part in "${_scope_parts[@]}"; do
+    part="${part#"${part%%[![:space:]]*}"}"
+    part="${part%"${part##*[![:space:]]}"}"
+    if [[ "$part" == "$token" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 # Scope check
 if [[ "$ADMIN" == false ]]; then
   case "$METHOD_UPPER" in
     GET)
       ;; # always allowed
     POST|PUT|PATCH)
-      if [[ "$SCOPES" != *"write"* ]]; then
+      if ! scope_has write; then
         echo "ERROR: $METHOD_UPPER requests require CLERK_BAPI_SCOPES=\"write\" or --admin flag." >&2
         echo "Current CLERK_BAPI_SCOPES: \"$SCOPES\"" >&2
         exit 1
       fi
       ;;
     DELETE)
-      if [[ "$SCOPES" != *"write"* ]] || [[ "$SCOPES" != *"delete"* ]]; then
+      if scope_has write && scope_has delete; then
+        :
+      else
         echo "ERROR: DELETE requests require CLERK_BAPI_SCOPES=\"write,delete\" or --admin flag." >&2
         echo "Current CLERK_BAPI_SCOPES: \"$SCOPES\"" >&2
         exit 1
