@@ -4,15 +4,16 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 01: Design System — Complete
+- Feature 02: Editor Chrome — Complete
 
 ## Current Goal
 
-- Install and configure shadcn/ui, add UI primitives, set up globals.css dark theme, and create cn() utility.
+- Build the base chrome components: top navbar and floating project sidebar.
 
 ## Completed
 
 - `01-design-system` — shadcn/ui configured, all UI primitives added (Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea), lucide-react installed, `lib/utils.ts` cn() helper created, globals.css dark theme set.
+- `02-editor-chrome` — `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` created; navbar has fixed height, left/center/right sections, PanelLeftOpen/PanelLeftClose toggle; sidebar floats above canvas (no push), slides in from left, has Projects header + close button, My Projects / Shared tabs with empty states, full-width New Project button.
 
 ## In Progress
 
