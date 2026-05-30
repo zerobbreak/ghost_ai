@@ -4,16 +4,17 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 02: Editor Chrome — Complete
+- Feature 03: Auth — Complete
 
 ## Current Goal
 
-- Build the base chrome components: top navbar and floating project sidebar.
+- Build the next planned feature unit.
 
 ## Completed
 
 - `01-design-system` — shadcn/ui configured, all UI primitives added (Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea), lucide-react installed, `lib/utils.ts` cn() helper created, globals.css dark theme set.
 - `02-editor-chrome` — `components/editor/editor-navbar.tsx` and `components/editor/project-sidebar.tsx` created; navbar has fixed height, left/center/right sections, PanelLeftOpen/PanelLeftClose toggle; sidebar floats above canvas (no push), slides in from left, has Projects header + close button, My Projects / Shared tabs with empty states, full-width New Project button.
+- `03-auth` — `@clerk/ui` installed; `proxy.ts` created at root with protected-first strategy; `ClerkProvider` wraps root layout with `dark` theme + CSS variable overrides (no hardcoded colors); sign-in/sign-up pages use two-panel layout (left: logo + tagline + feature list hidden on mobile, right: Clerk form); `/` redirects to `/editor` if authenticated, `/sign-in` otherwise; `UserButton` added to editor navbar right section; `app/editor/page.tsx` scaffolded; `npm run build` passes.
 
 ## In Progress
 
