@@ -1,0 +1,73 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  /* --- Project design tokens --- */
+  --color-bg-base: #080809;
+  --color-bg-surface: #111114;
+  --color-bg-elevated: #18181c;
+  --color-bg-subtle: #1e1e23;
+
+  --color-border-default: #2a2a30;
+  --color-border-subtle: #3a3a42;
+
+  --color-text-primary: #f0f0f4;
+  --color-text-secondary: #c0c0cc;
+  --color-text-muted: #808090;
+  --color-text-faint: #505060;
+
+  --color-accent-primary: #00c8d4;
+  --color-accent-primary-dim: rgba(0, 200, 212, 0.12);
+  --color-accent-ai: #6457f9;
+  --color-accent-ai-text: #8b82ff;
+
+  --color-state-error: #ff4d4f;
+  --color-state-success: #34d399;
+  --color-state-warning: #fbbf24;
+
+  /* --- shadcn/ui token mapping (dark only) --- */
+  --color-background: #080809;
+  --color-foreground: #f0f0f4;
+
+  --color-card: #111114;
+  --color-card-foreground: #f0f0f4;
+
+  --color-popover: #18181c;
+  --color-popover-foreground: #f0f0f4;
+
+  --color-primary: #00c8d4;
+  --color-primary-foreground: #080809;
+
+  --color-secondary: #1e1e23;
+  --color-secondary-foreground: #c0c0cc;
+
+  --color-muted: #1e1e23;
+  --color-muted-foreground: #808090;
+
+  --color-accent: rgba(0, 200, 212, 0.12);
+  --color-accent-foreground: #00c8d4;
+
+  --color-destructive: #ff4d4f;
+  --color-destructive-foreground: #f0f0f4;
+
+  --color-border: #2a2a30;
+  --color-input: #2a2a30;
+  --color-ring: #00c8d4;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
