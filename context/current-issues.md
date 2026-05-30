@@ -1,1 +1,1 @@
-There was a was a long wait when loiging on a f
+There was a was a long wait when logging on as a first time user i cant identify why
