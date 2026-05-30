@@ -1,8 +1,10 @@
 allowBuilds:
   '@clerk/shared': true
+  '@prisma/engines': set this to true or false
   bufferutil: false
   core-js: false
   msw: true
+  prisma: set this to true or false
   sharp: true
   unrs-resolver: true
   utf-8-validate: false
