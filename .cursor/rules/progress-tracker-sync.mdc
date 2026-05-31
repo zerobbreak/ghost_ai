@@ -1,0 +1,45 @@
+---
+description: Keeps context/progress-tracker.md in sync whenever feature specs are created or modified and whenever an agent finishes a task.
+globs: context/feature-specs/**/*.md
+alwaysApply: true
+---
+
+# Progress Tracker Sync
+
+`context/progress-tracker.md` is the single source of truth for project state. Keep it accurate at all times.
+
+## When a new feature spec is added to `context/feature-specs/`
+
+1. Read the spec file to determine its **feature ID and title** (e.g. `06-api-routes` → "Feature 06: API Routes").
+2. Open `context/progress-tracker.md` and:
+   - Update **Current Phase** to reflect the new active feature.
+   - Move the feature entry into **In Progress** (use the spec filename prefix + title, matching the style of existing entries, e.g. `` `06-api-routes` — short description ``).
+   - Remove or update the **Next Up** placeholder to reflect what comes after this feature.
+
+## While implementing a feature spec
+
+- Keep **In Progress** accurate — it must always list what is actively being worked on right now.
+- If a design or implementation decision is made that affects architecture, storage, naming conventions, or cross-cutting concerns, append a bullet to **Architecture Decisions** in this format:
+  ```
+  - **<short label>** — <one-sentence rationale>.
+  ```
+  Only add entries for decisions that are non-obvious or would need justification when revisited later. Do not duplicate existing entries.
+
+## When an agent finishes its task
+
+After successfully completing all todos for a feature or sub-task:
+
+1. Move the entry from **In Progress** to **Completed**, following the existing style:
+   `` - `<id>` — <concise summary of what was built/changed>. ``
+2. Update **Current Phase** to reflect the new state (e.g. "Feature 06: API Routes — Complete").
+3. Set **In Progress** to `- None.` if nothing else is active.
+4. Update **Next Up** to the logical next feature, or clear it if unknown.
+5. Add any final **Architecture Decisions** introduced during the task.
+6. Clear **Session Notes** entries that are no longer relevant and add a brief resume note if context is needed for the next session.
+
+## Formatting rules
+
+- Match the existing bullet style — backtick-wrapped feature IDs, em-dashes, sentence-case descriptions.
+- Never reorder or delete **Completed** entries.
+- Never leave **In Progress** blank — use `- None.` when nothing is active.
+- All edits must be minimal and surgical: only change the sections that need updating.

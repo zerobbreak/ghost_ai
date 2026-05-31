@@ -1,10 +1,12 @@
 allowBuilds:
   '@clerk/shared': true
-  '@prisma/engines': set this to true or false
+  # Allow Prisma engine download during install (set false to block postinstall scripts)
+  '@prisma/engines': true
   bufferutil: false
   core-js: false
   msw: true
-  prisma: set this to true or false
+  # Allow prisma CLI postinstall / generate scripts (set false to block)
+  prisma: true
   sharp: true
   unrs-resolver: true
   utf-8-validate: false

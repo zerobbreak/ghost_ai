@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 05: Prisma Schema And Data Layer — Complete
+- Feature 07: Wire Editor Home — Complete
 
 ## Current Goal
 
@@ -19,6 +19,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - `04-project-dialogs` — `lib/mock-projects.ts` (Project type + MOCK_PROJECTS); `hooks/use-project-dialogs.ts` (dialog/form/loading state, in-memory CRUD, slug generation); `components/editor/project-dialogs.tsx` (Create with live slug preview, Rename with auto-focus + Enter submit, Delete with destructive confirm); `project-sidebar.tsx` updated (project list, hover-reveal rename/delete for owned only, shared tab without actions, mobile backdrop scrim, New Project wired); `app/editor/page.tsx` updated (centered home screen with heading + description + New Project button, full dialog wiring).
 
 - `05-prisma` — `prisma/models/project.prisma` (Project + ProjectCollaborator models, status enum DRAFT/ARCHIVED, cascading delete, composite unique/indexes); `prisma/schema.prisma` datasource set to PostgreSQL; `lib/prisma.ts` cached singleton (Accelerate path via `accelerateUrl` + `withAccelerate()`, pg-adapter path via `PrismaPg`); migration `20260530215742_init_projects` applied; client generated to `app/generated/prisma`; `@prisma/client`, `@prisma/adapter-pg`, `pg`, `@prisma/extension-accelerate` installed.
+- `06-project-apis` — `app/api/projects/route.ts` (GET lists owner's projects, POST creates project defaulting name to "Untitled Project"); `app/api/projects/[projectId]/route.ts` (PATCH renames, DELETE removes); all routes enforce 401 for unauthenticated requests and 403 for non-owner mutations via Clerk `auth()`.
+- `07-wire-editor-home` — `lib/projects.ts` (server-side data helper, `SidebarProject` type, owned + shared project fetch via Prisma + Clerk `currentUser()`); `hooks/use-project-actions.ts` (real API CRUD hook: create navigates to `/editor/[id]`, rename refreshes, delete redirects if active or refreshes); `app/editor/page.tsx` converted to async server component; `app/editor/editor-home-client.tsx` client wrapper; sidebar and dialogs updated to use real types and `createRoomId` preview.
 
 ## In Progress
 
@@ -27,6 +29,8 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Add the next planned feature unit here.
+
+
 
 ## Open Questions
 
@@ -40,7 +44,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - **`@base-ui/react` as primitive layer** — shadcn `base-nova` uses `@base-ui/react` (not Radix UI) as the headless primitive layer.
 - **Dialog controlled via `open` / `onOpenChange`** — all dialogs are fully controlled; open state lives in `useProjectDialogs` and is passed down; `onOpenChange={(open) => !open && closeDialog()}` is the standard close pattern.
 - **`useProjectDialogs` hook owns all dialog + project state** — hoisted to the page level so the editor home button and sidebar share a single state instance; no prop drilling beyond one level.
-- **In-memory mock data** — `lib/mock-projects.ts` seeds the project list; mutations (create, rename, delete) update a `useState` array inside the hook; no API calls or persistence until a future feature spec introduces them.
+- **In-memory mock data** — `lib/mock-projects.ts` seeds the project list; mutations (create, rename, delete) update a `useState` array inside the hook; no API calls or persistence until a future feature spec introduces them. (Superseded by `07-wire-editor-home`.)
 - **Slug generation is pure/client-side** — `toSlug()` in the hook lowercases, strips non-alphanumeric chars, and collapses spaces to hyphens; slug is derived live from the name input with no debounce needed.
 - **Sidebar actions are owned-only** — `onRename` / `onDelete` props are only threaded through to `ProjectItem` for projects where `owned === true`; shared projects render without action buttons.
 - **Prisma 7 driver-adapter pattern** — `lib/prisma.ts` branches on `DATABASE_URL` prefix: `prisma+postgres://` → `accelerateUrl` + `withAccelerate()`; otherwise → `PrismaPg({ connectionString })` adapter; both are mutually exclusive per Prisma 7's new constructor API.
@@ -49,4 +53,4 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
-- Add context needed to resume work in the next session.
+- `use-project-dialogs.ts` (mock hook) is superseded by `use-project-actions.ts` but kept in place; it can be deleted once the workspace editor page (`/editor/[projectId]`) is built and no longer referenced.
