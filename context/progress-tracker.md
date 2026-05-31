@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 07: Wire Editor Home — Complete
+- Feature 09: Share Dialog — Complete
 
 ## Current Goal
 
@@ -21,6 +21,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - `05-prisma` — `prisma/models/project.prisma` (Project + ProjectCollaborator models, status enum DRAFT/ARCHIVED, cascading delete, composite unique/indexes); `prisma/schema.prisma` datasource set to PostgreSQL; `lib/prisma.ts` cached singleton (Accelerate path via `accelerateUrl` + `withAccelerate()`, pg-adapter path via `PrismaPg`); migration `20260530215742_init_projects` applied; client generated to `app/generated/prisma`; `@prisma/client`, `@prisma/adapter-pg`, `pg`, `@prisma/extension-accelerate` installed.
 - `06-project-apis` — `app/api/projects/route.ts` (GET lists owner's projects, POST creates project defaulting name to "Untitled Project"); `app/api/projects/[projectId]/route.ts` (PATCH renames, DELETE removes); all routes enforce 401 for unauthenticated requests and 403 for non-owner mutations via Clerk `auth()`.
 - `07-wire-editor-home` — `lib/projects.ts` (server-side data helper, `SidebarProject` type, owned + shared project fetch via Prisma + Clerk `currentUser()`); `hooks/use-project-actions.ts` (real API CRUD hook: create navigates to `/editor/[id]`, rename refreshes, delete redirects if active or refreshes); `app/editor/page.tsx` converted to async server component; `app/editor/editor-home-client.tsx` client wrapper; sidebar and dialogs updated to use real types and `createRoomId` preview.
+- `08-editor-workspace-shell` — `lib/project-access.ts` added (`getCurrentIdentity`, owner/collaborator membership checks, `getAccessibleProjectById`); `/editor/[roomId]` server route added with unauthenticated redirect to `/sign-in` and `AccessDenied` fallback for missing/unauthorized projects; workspace client shell added with project-aware navbar, highlighted active room in `ProjectSidebar`, canvas placeholder, and AI sidebar placeholder.
+- `09-share-dialog` — `GET/POST /api/projects/[projectId]/collaborators` and `DELETE /api/projects/[projectId]/collaborators/[email]` added with owner-only enforcement; Clerk Backend API used to enrich collaborator emails with display name and avatar; `components/editor/share-dialog.tsx` built (owner invite + remove, collaborator read-only view, copy-link with temporary "Copied!" feedback); Share button in `EditorNavbar` wired to open the dialog from `EditorWorkspaceClient`; `npm run build` passes.
 
 ## In Progress
 
@@ -28,7 +30,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Add the next planned feature unit here.
+- Implement the next editor workspace feature unit (canvas/live collaboration scope).
 
 
 
@@ -50,7 +52,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Prisma 7 driver-adapter pattern** — `lib/prisma.ts` branches on `DATABASE_URL` prefix: `prisma+postgres://` → `accelerateUrl` + `withAccelerate()`; otherwise → `PrismaPg({ connectionString })` adapter; both are mutually exclusive per Prisma 7's new constructor API.
 - **Multi-file Prisma schema** — `prisma.config.ts` sets `schema: "prisma/"` so all `*.prisma` files in the folder are merged; datasource and generator live in `schema.prisma`, models in `prisma/models/`.
 - **No `url`/`directUrl` in schema** — Prisma 7 removed these from the schema file; the connection URL lives exclusively in `prisma.config.ts` → `datasource.url`.
+- **Workspace access checks centralized in `lib/project-access.ts`** — server routes/pages resolve Clerk identity (`userId` + primary email) and evaluate owner-or-collaborator membership through one shared helper to keep authorization behavior consistent.
 
 ## Session Notes
 
-- `use-project-dialogs.ts` (mock hook) is superseded by `use-project-actions.ts` but kept in place; it can be deleted once the workspace editor page (`/editor/[projectId]`) is built and no longer referenced.
+- Workspace shell now exists at `/editor/[roomId]`; real canvas/Liveblocks logic is intentionally still pending per feature scope.
+- Share dialog is fully functional; collaborator enrichment uses `clerkClient().users.getUserList()` server-side — falls back gracefully to email-only if Clerk lookup fails.

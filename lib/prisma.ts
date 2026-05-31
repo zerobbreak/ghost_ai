@@ -3,7 +3,12 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function createPrismaClient(): PrismaClient {
-  const url = process.env.DATABASE_URL ?? "";
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) {
+    throw new Error(
+      "DATABASE_URL is not set. Add it to .env.local (direct Postgres URL or prisma+postgres:// for Accelerate)."
+    );
+  }
 
   if (url.startsWith("prisma+postgres://") || url.startsWith("prisma://")) {
     // Accelerate path: pass the URL via accelerateUrl (Prisma 7 API).

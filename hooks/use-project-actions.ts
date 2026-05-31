@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { SidebarProject } from "@/lib/projects";
 
@@ -27,6 +27,7 @@ export interface UseProjectActionsReturn {
   createRoomId: string;
   renameName: string;
   isLoading: boolean;
+  error: Error | null;
   openCreate: () => void;
   openRename: (project: SidebarProject) => void;
   openDelete: (project: SidebarProject) => void;
@@ -49,29 +50,34 @@ export function useProjectActions(
 ): UseProjectActionsReturn {
   const { activeProjectId, onCreateSuccess } = options;
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<DialogType>(null);
   const [selectedProject, setSelectedProject] = useState<SidebarProject | null>(null);
   const [createName, setCreateName] = useState("");
   const [suffix, setSuffix] = useState("");
   const [renameName, setRenameName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const slug = toSlug(createName);
   const createRoomId = slug ? `${slug}-${suffix}` : "";
 
   const openCreate = () => {
+    setError(null);
     setCreateName("");
     setSuffix(shortSuffix());
     setDialog("create");
   };
 
   const openRename = (project: SidebarProject) => {
+    setError(null);
     setSelectedProject(project);
     setRenameName(project.name);
     setDialog("rename");
   };
 
   const openDelete = (project: SidebarProject) => {
+    setError(null);
     setSelectedProject(project);
     setDialog("delete");
   };
@@ -79,12 +85,14 @@ export function useProjectActions(
   const closeDialog = () => {
     setDialog(null);
     setSelectedProject(null);
+    setError(null);
   };
 
   const handleCreate = async () => {
     const trimmed = createName.trim();
     if (!trimmed) return;
-    setIsLoading(true);
+    setIsFetching(true);
+    setError(null);
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
@@ -95,17 +103,21 @@ export function useProjectActions(
       const data = (await res.json()) as { project: { id: string; name: string } };
       closeDialog();
       onCreateSuccess?.(data.project);
-      router.refresh();
-      // Navigate to workspace once /editor/[projectId] exists (feature not built yet).
+      startTransition(() => {
+        router.push(`/editor/${data.project.id}`);
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
-      setIsLoading(false);
+      setIsFetching(false);
     }
   };
 
   const handleRename = async () => {
     const trimmed = renameName.trim();
     if (!trimmed || !selectedProject) return;
-    setIsLoading(true);
+    setIsFetching(true);
+    setError(null);
     try {
       const res = await fetch(`/api/projects/${selectedProject.id}`, {
         method: "PATCH",
@@ -114,28 +126,35 @@ export function useProjectActions(
       });
       if (!res.ok) throw new Error("Failed to rename project");
       closeDialog();
-      router.refresh();
+      startTransition(() => router.refresh());
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
-      setIsLoading(false);
+      setIsFetching(false);
     }
   };
 
   const handleDelete = async () => {
     if (!selectedProject) return;
-    setIsLoading(true);
+    setIsFetching(true);
+    setError(null);
     try {
       const res = await fetch(`/api/projects/${selectedProject.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete project");
       closeDialog();
-      if (activeProjectId === selectedProject.id) {
-        router.push("/editor");
-      } else {
-        router.refresh();
-      }
+      startTransition(() => {
+        if (activeProjectId === selectedProject.id) {
+          router.push("/editor");
+        } else {
+          router.refresh();
+        }
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
     } finally {
-      setIsLoading(false);
+      setIsFetching(false);
     }
   };
 
@@ -145,7 +164,8 @@ export function useProjectActions(
     createName,
     createRoomId,
     renameName,
-    isLoading,
+    isLoading: isFetching || isPending,
+    error,
     openCreate,
     openRename,
     openDelete,

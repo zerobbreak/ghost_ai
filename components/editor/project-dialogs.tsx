@@ -21,6 +21,7 @@ type Props = Pick<
   | "createRoomId"
   | "renameName"
   | "isLoading"
+  | "error"
   | "closeDialog"
   | "setCreateName"
   | "setRenameName"
@@ -36,6 +37,7 @@ export function ProjectDialogs({
   createRoomId,
   renameName,
   isLoading,
+  error,
   closeDialog,
   setCreateName,
   setRenameName,
@@ -44,6 +46,7 @@ export function ProjectDialogs({
   handleDelete,
 }: Props) {
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const errorMessage = error?.message;
 
   return (
     <>
@@ -82,6 +85,12 @@ export function ProjectDialogs({
               </p>
             )}
           </div>
+
+          {dialog === "create" && errorMessage && (
+            <p className="text-sm text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          )}
 
           <DialogFooter showCloseButton>
             <Button
@@ -123,6 +132,12 @@ export function ProjectDialogs({
             />
           </div>
 
+          {dialog === "rename" && errorMessage && (
+            <p className="text-sm text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          )}
+
           <DialogFooter showCloseButton>
             <Button
               onClick={handleRename}
@@ -149,6 +164,12 @@ export function ProjectDialogs({
               </DialogDescription>
             )}
           </DialogHeader>
+
+          {dialog === "delete" && errorMessage && (
+            <p className="text-sm text-destructive" role="alert">
+              {errorMessage}
+            </p>
+          )}
 
           <DialogFooter showCloseButton>
             <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>

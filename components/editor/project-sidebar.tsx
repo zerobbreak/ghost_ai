@@ -12,6 +12,8 @@ interface ProjectSidebarProps {
   onNewProject: () => void;
   onRenameProject: (project: SidebarProject) => void;
   onDeleteProject: (project: SidebarProject) => void;
+  activeProjectId?: string;
+  onProjectSelect?: (project: SidebarProject) => void;
 }
 
 function EmptyPlaceholder({ label }: { label: string }) {
@@ -29,22 +31,42 @@ function ProjectItem({
   project,
   onRename,
   onDelete,
+  isActive = false,
+  onSelect,
 }: {
   project: SidebarProject;
   onRename?: () => void;
   onDelete?: () => void;
+  isActive?: boolean;
+  onSelect?: () => void;
 }) {
+  const rowClass = [
+    "group/item flex w-full items-center gap-1 rounded-md px-2 py-1.5 transition-colors",
+    isActive
+      ? "bg-(--color-accent-primary-dim)"
+      : "hover:bg-(--color-bg-elevated)",
+  ].join(" ");
+
+  const nameClass = [
+    "flex-1 truncate text-sm group-hover/item:text-(--color-text-primary)",
+    isActive ? "text-(--color-text-primary)" : "text-(--color-text-secondary)",
+  ].join(" ");
+
   return (
-    <div className="group/item flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-(--color-bg-elevated) transition-colors">
-      <span className="flex-1 truncate text-sm text-(--color-text-secondary) group-hover/item:text-(--color-text-primary)">
-        {project.name}
-      </span>
+    <div className={rowClass}>
+      {onSelect ? (
+        <button type="button" onClick={onSelect} className={`${nameClass} text-left`}>
+          {project.name}
+        </button>
+      ) : (
+        <span className={nameClass}>{project.name}</span>
+      )}
       {onRename && onDelete && (
         <div className="flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity">
           <Button
             variant="ghost"
             size="icon-xs"
-            onClick={(e) => { e.stopPropagation(); onRename(); }}
+            onClick={onRename}
             className="h-6 w-6 text-(--color-text-muted) hover:text-(--color-text-primary)"
             aria-label={`Rename ${project.name}`}
           >
@@ -53,7 +75,7 @@ function ProjectItem({
           <Button
             variant="ghost"
             size="icon-xs"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            onClick={onDelete}
             className="h-6 w-6 text-(--color-text-muted) hover:text-destructive"
             aria-label={`Delete ${project.name}`}
           >
@@ -72,6 +94,8 @@ export function ProjectSidebar({
   onNewProject,
   onRenameProject,
   onDeleteProject,
+  activeProjectId,
+  onProjectSelect,
 }: ProjectSidebarProps) {
   const ownedProjects = projects.filter((p) => p.owned);
   const sharedProjects = projects.filter((p) => !p.owned);
@@ -135,6 +159,8 @@ export function ProjectSidebar({
                     <ProjectItem
                       key={project.id}
                       project={project}
+                      isActive={project.id === activeProjectId}
+                      onSelect={() => onProjectSelect?.(project)}
                       onRename={() => onRenameProject(project)}
                       onDelete={() => onDeleteProject(project)}
                     />
@@ -149,7 +175,12 @@ export function ProjectSidebar({
               ) : (
                 <div className="flex flex-col gap-0.5">
                   {sharedProjects.map((project) => (
-                    <ProjectItem key={project.id} project={project} />
+                    <ProjectItem
+                      key={project.id}
+                      project={project}
+                      isActive={project.id === activeProjectId}
+                      onSelect={() => onProjectSelect?.(project)}
+                    />
                   ))}
                 </div>
               )}

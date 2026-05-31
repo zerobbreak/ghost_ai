@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
@@ -15,6 +16,7 @@ interface EditorHomeClientProps {
 }
 
 export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeClientProps) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [owned, setOwned] = useState(ownedProjects);
   const [shared, setShared] = useState(sharedProjects);
@@ -45,6 +47,7 @@ export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeCl
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         projects={projects}
+        onProjectSelect={(project) => router.push(`/editor/${project.id}`)}
         onNewProject={actions.openCreate}
         onRenameProject={actions.openRename}
         onDeleteProject={actions.openDelete}
@@ -72,6 +75,7 @@ export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeCl
         createRoomId={actions.createRoomId}
         renameName={actions.renameName}
         isLoading={actions.isLoading}
+        error={actions.error}
         closeDialog={actions.closeDialog}
         setCreateName={actions.setCreateName}
         setRenameName={actions.setRenameName}
