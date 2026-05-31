@@ -2,7 +2,7 @@
 title: "Primitive component parts"
 ---
 
-# Primivite component parts
+# Primitive component parts
 
 Primitives are headless and unstyled components, and can be used to construct
 components that fit your own design system. Each primitive is made up of one or
@@ -64,7 +64,7 @@ Merge with your design system components. `asChild` is helpful.
 ```tsx
 function DesignSystemLink({ url, children }) {
   return (
-    <a href={url} target="_blank" class="underline font-medium">
+    <a href={url} target="_blank" className="underline font-medium">
       {children}
     </a>
   );

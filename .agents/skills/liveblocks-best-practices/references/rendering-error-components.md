@@ -5,7 +5,7 @@ title: "Rendering error components"
 # Rendering error components
 
 It's recommended to structure your app using the suspense version of Liveblocks
-hooks, alongside `ErrorBoundary` and its `fallback` property used as a an error
+hooks, alongside `ErrorBoundary` and its `fallback` property used as an error
 component. Make sure it's installed:
 
 ```

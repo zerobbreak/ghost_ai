@@ -10,7 +10,7 @@ like to notify users about unread comments in your application.
 
 Example:
 
-```ts
+```tsx
 import { isThreadNotificationEvent, WebhookHandler } from "@liveblocks/node";
 import { Liveblocks } from "@liveblocks/node";
 import { prepareThreadNotificationEmailAsReact } from "@liveblocks/emails";

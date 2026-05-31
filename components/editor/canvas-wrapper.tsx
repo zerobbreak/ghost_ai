@@ -6,6 +6,8 @@ import { LiveblocksCanvas } from "./liveblocks-canvas";
 
 interface CanvasWrapperProps {
   roomId: string;
+  isTemplatesOpen?: boolean;
+  onTemplatesOpenChange?: (open: boolean) => void;
 }
 
 interface ErrorBoundaryState {
@@ -45,9 +47,13 @@ class CanvasErrorBoundary extends Component<
   }
 }
 
-export function CanvasWrapper({ roomId }: CanvasWrapperProps) {
+export function CanvasWrapper({
+  roomId,
+  isTemplatesOpen,
+  onTemplatesOpenChange,
+}: CanvasWrapperProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={16}>
       <RoomProvider
         id={roomId}
         initialPresence={{ cursor: null, isThinking: false }}
@@ -60,7 +66,10 @@ export function CanvasWrapper({ roomId }: CanvasWrapperProps) {
               </div>
             }
           >
-            <LiveblocksCanvas />
+            <LiveblocksCanvas
+              isTemplatesOpen={isTemplatesOpen}
+              onTemplatesOpenChange={onTemplatesOpenChange}
+            />
           </ClientSideSuspense>
         </CanvasErrorBoundary>
       </RoomProvider>

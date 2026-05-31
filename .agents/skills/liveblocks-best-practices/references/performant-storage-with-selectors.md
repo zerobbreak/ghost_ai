@@ -22,7 +22,7 @@ function Storage() {
 
 ## Examples
 
-Here's some more comples examples, given the following Storage types:
+Here's some more complex examples, given the following Storage types:
 
 ```ts file="liveblocks.config.ts"
 import { LiveList, LiveMap, LiveObject } from "@liveblocks/client";

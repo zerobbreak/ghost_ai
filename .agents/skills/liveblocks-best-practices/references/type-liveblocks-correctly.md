@@ -4,7 +4,7 @@ title: "Type Liveblocks correctly"
 
 # Type Liveblocks correctly
 
-Use your Lliveblocks config file to automatically type your whole application.
+Use your Liveblocks config file to automatically type your whole application.
 Running the following commands starts it in the current directory:
 
 ```bash

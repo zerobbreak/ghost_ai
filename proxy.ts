@@ -1,6 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const publicRoutePatterns = ["/sign-in(.*)", "/sign-up(.*)", "/__clerk(.*)"];
+const publicRoutePatterns = [
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/__clerk(.*)",
+  "/api/liveblocks-auth",
+];
 
 const signInUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL?.trim();
 const signUpUrl = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL?.trim();

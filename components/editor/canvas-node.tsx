@@ -1,164 +1,375 @@
 "use client";
 
-import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
+import {
+  Handle,
+  NodeResizeControl,
+  NodeToolbar,
+  Position,
+  type NodeProps,
+} from "@xyflow/react";
 import type { CanvasNode, NodeShape } from "@/types/canvas";
-import { DEFAULT_NODE_COLOR } from "@/types/canvas";
+import { DEFAULT_NODE_COLOR, NODE_COLORS } from "@/types/canvas";
+import { useCanvasActions } from "./canvas-actions-context";
 
-interface ShapePathProps {
+const MIN_WIDTH = 80;
+const MIN_HEIGHT = 40;
+
+// ---------------------------------------------------------------------------
+// SVG shape helpers
+// ---------------------------------------------------------------------------
+
+interface SvgShapeProps {
   fill: string;
   stroke: string;
-  sw: number; // stroke-width in screen px (via vectorEffect)
+  sw: number;
 }
 
-// All shapes use a 100×100 viewBox with preserveAspectRatio="none".
-// vectorEffect="non-scaling-stroke" keeps border width uniform.
-
-function Rectangle({ fill, stroke, sw }: ShapePathProps) {
-  return (
-    <rect
-      x="0.5" y="0.5" width="99" height="99" rx="4"
-      fill={fill} stroke={stroke} strokeWidth={sw}
-      vectorEffect="non-scaling-stroke"
-    />
-  );
-}
-
-function Diamond({ fill, stroke, sw }: ShapePathProps) {
+function Diamond({ fill, stroke, sw }: SvgShapeProps) {
   return (
     <polygon
       points="50,0.5 99.5,50 50,99.5 0.5,50"
-      fill={fill} stroke={stroke} strokeWidth={sw}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={sw}
       vectorEffect="non-scaling-stroke"
     />
   );
 }
 
-function Circle({ fill, stroke, sw }: ShapePathProps) {
-  return (
-    <ellipse
-      cx="50" cy="50" rx="49.5" ry="49.5"
-      fill={fill} stroke={stroke} strokeWidth={sw}
-      vectorEffect="non-scaling-stroke"
-    />
-  );
-}
-
-function Pill({ fill, stroke, sw }: ShapePathProps) {
-  // rx="50" in a 100×100 viewBox gives fully-rounded ends at any aspect ratio
-  return (
-    <rect
-      x="0.5" y="0.5" width="99" height="99" rx="50"
-      fill={fill} stroke={stroke} strokeWidth={sw}
-      vectorEffect="non-scaling-stroke"
-    />
-  );
-}
-
-function Cylinder({ fill, stroke, sw }: ShapePathProps) {
-  // Top ellipse center at y=14, bottom at y=86
+function Cylinder({ fill, stroke, sw }: SvgShapeProps) {
   const ex = 49.5;
   const ery = 13.5;
   const topY = 14;
   const botY = 86;
-
   return (
     <>
-      {/* Body sides + bottom arc */}
       <path
         d={`M 0.5,${topY} L 0.5,${botY} A ${ex},${ery} 0 0 0 99.5,${botY} L 99.5,${topY}`}
-        fill={fill} stroke={stroke} strokeWidth={sw}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={sw}
         vectorEffect="non-scaling-stroke"
       />
-      {/* Top cap — drawn last so it sits on top of the body */}
       <ellipse
-        cx="50" cy={topY} rx={ex} ry={ery}
-        fill={fill} stroke={stroke} strokeWidth={sw}
+        cx="50"
+        cy={topY}
+        rx={ex}
+        ry={ery}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={sw}
         vectorEffect="non-scaling-stroke"
       />
-      {/* Bottom visible rim (front arc only) */}
       <path
         d={`M 0.5,${botY} A ${ex},${ery} 0 0 0 99.5,${botY}`}
-        fill="none" stroke={stroke} strokeWidth={sw}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={sw}
         vectorEffect="non-scaling-stroke"
       />
     </>
   );
 }
 
-function Hexagon({ fill, stroke, sw }: ShapePathProps) {
+function Hexagon({ fill, stroke, sw }: SvgShapeProps) {
   return (
     <polygon
       points="25,0.5 75,0.5 99.5,50 75,99.5 25,99.5 0.5,50"
-      fill={fill} stroke={stroke} strokeWidth={sw}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={sw}
       vectorEffect="non-scaling-stroke"
     />
   );
 }
 
-const SHAPE_COMPONENTS: Record<NodeShape, React.FC<ShapePathProps>> = {
-  rectangle: Rectangle,
-  diamond: Diamond,
-  circle: Circle,
-  pill: Pill,
-  cylinder: Cylinder,
-  hexagon: Hexagon,
+const CSS_SHAPES = new Set<NodeShape>(["rectangle", "pill", "circle"]);
+
+function cssBorderRadius(shape: NodeShape): string {
+  if (shape === "rectangle") return "4px";
+  if (shape === "circle") return "50%";
+  return "9999px"; // pill
+}
+
+// ---------------------------------------------------------------------------
+// Resize controls
+// ---------------------------------------------------------------------------
+
+const CORNER_HANDLE_STYLE: CSSProperties = {
+  width: 8,
+  height: 8,
+  borderRadius: 2,
+  border: "none",
+  backgroundColor: "#00c8d4",
+  opacity: 0.8,
 };
 
-function CanvasNodeComponent({ data, selected }: NodeProps<CanvasNode>) {
+const SIDE_H_HANDLE_STYLE: CSSProperties = {
+  width: 32,
+  height: 6,
+  borderRadius: 3,
+  border: "none",
+  backgroundColor: "#00c8d4",
+  opacity: 0.7,
+};
+
+const SIDE_V_HANDLE_STYLE: CSSProperties = {
+  width: 6,
+  height: 32,
+  borderRadius: 3,
+  border: "none",
+  backgroundColor: "#00c8d4",
+  opacity: 0.7,
+};
+
+function ResizeHandles() {
+  return (
+    <>
+      {(
+        ["top-left", "top-right", "bottom-left", "bottom-right"] as const
+      ).map((pos) => (
+        <NodeResizeControl
+          key={pos}
+          position={pos}
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          style={CORNER_HANDLE_STYLE}
+        />
+      ))}
+      {(["top", "bottom"] as const).map((pos) => (
+        <NodeResizeControl
+          key={pos}
+          position={pos}
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          style={SIDE_H_HANDLE_STYLE}
+        />
+      ))}
+      {(["left", "right"] as const).map((pos) => (
+        <NodeResizeControl
+          key={pos}
+          position={pos}
+          minWidth={MIN_WIDTH}
+          minHeight={MIN_HEIGHT}
+          style={SIDE_V_HANDLE_STYLE}
+        />
+      ))}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Color toolbar
+// ---------------------------------------------------------------------------
+
+interface ColorToolbarProps {
+  nodeId: string;
+  activeFill: string;
+  activeText: string;
+}
+
+type SwatchStyle = CSSProperties & {
+  "--swatch-glow": string;
+};
+
+function ColorToolbar({ nodeId, activeFill, activeText }: ColorToolbarProps) {
+  const { updateNodeColor } = useCanvasActions();
+
+  return (
+    <div
+      className="flex items-center gap-1.5 rounded-full border border-border bg-popover px-2.5 py-1.5 shadow-lg"
+      aria-label="Node color toolbar"
+    >
+      {NODE_COLORS.map((color) => {
+        const active = color.fill === activeFill && color.text === activeText;
+        const swatchStyle: SwatchStyle = {
+          "--swatch-glow": color.text,
+          backgroundColor: color.fill,
+          borderColor: active ? color.text : "#2a2a30",
+          boxShadow: active ? `0 0 0 2px ${color.text}` : undefined,
+        };
+
+        return (
+          <button
+            key={`${color.fill}-${color.text}`}
+            type="button"
+            className="h-4 w-4 shrink-0 rounded-full border transition-shadow hover:shadow-[0_0_6px_var(--swatch-glow)]"
+            style={swatchStyle}
+            aria-label="Set node color"
+            aria-pressed={active}
+            title="Set node color"
+            onClick={(e) => {
+              e.stopPropagation();
+              updateNodeColor(nodeId, color.fill, color.text);
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Node renderer
+// ---------------------------------------------------------------------------
+
+// Shared class string for all four connection handles
+// - opacity-0 at rest, visible on node hover (group-hover), full + glow on direct hover
+const HANDLE_CLASS =
+  "h-3! w-3! rounded-full! border-2! border-[#00c8d4]! bg-[#18181c]! " +
+  "opacity-0 transition-all duration-150 " +
+  "group-hover:opacity-50 hover:opacity-100 hover:shadow-[0_0_8px_#00c8d4]";
+
+function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode>) {
   const shape = data.shape ?? "rectangle";
   const bg = data.color ?? DEFAULT_NODE_COLOR.fill;
   const fg = data.textColor ?? DEFAULT_NODE_COLOR.text;
-  const stroke = selected ? "#00c8d4" : "#2a2a30";
+  const borderColor = selected ? "#00c8d4" : "#2a2a30";
   const sw = selected ? 2 : 1;
 
-  const ShapeEl = SHAPE_COMPONENTS[shape];
+  const { updateNodeLabel } = useCanvasActions();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(data.label);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
+  }, [editing]);
+
+  const handleDoubleClick = useCallback(
+    (e: MouseEvent) => {
+      e.stopPropagation();
+      setDraft(data.label);
+      setEditing(true);
+    },
+    [data.label],
+  );
+
+  const commitEdit = useCallback(() => {
+    updateNodeLabel(id, draft);
+    setEditing(false);
+  }, [id, draft, updateNodeLabel]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Escape") {
+        setDraft(data.label);
+        setEditing(false);
+      } else if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        commitEdit();
+      }
+    },
+    [commitEdit, data.label],
+  );
 
   return (
-    <div className="relative h-full w-full">
-      {/* Shape SVG fills the node container */}
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        className="absolute inset-0 h-full w-full"
-        aria-hidden
-      >
-        <ShapeEl fill={bg} stroke={stroke} sw={sw} />
-      </svg>
+    <>
+      <NodeToolbar position={Position.Top} isVisible={selected} offset={8}>
+        <ColorToolbar nodeId={id} activeFill={bg} activeText={fg} />
+      </NodeToolbar>
 
-      {/* Centered label on top of SVG */}
-      <div
-        className="relative flex h-full w-full items-center justify-center px-3 py-2"
-        style={{ color: fg }}
-      >
-        <span className="pointer-events-none select-none text-center text-sm font-medium leading-tight">
-          {data.label}
-        </span>
+      {selected && <ResizeHandles />}
+
+      <div className="group relative h-full w-full">
+        {CSS_SHAPES.has(shape) ? (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: bg,
+              border: `${sw}px solid ${borderColor}`,
+              borderRadius: cssBorderRadius(shape),
+              transition: "border-color 0.15s",
+            }}
+          />
+        ) : (
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+            aria-hidden
+          >
+            {shape === "diamond" && (
+              <Diamond fill={bg} stroke={borderColor} sw={sw} />
+            )}
+            {shape === "hexagon" && (
+              <Hexagon fill={bg} stroke={borderColor} sw={sw} />
+            )}
+            {shape === "cylinder" && (
+              <Cylinder fill={bg} stroke={borderColor} sw={sw} />
+            )}
+          </svg>
+        )}
+
+        <div
+          className="relative flex h-full w-full items-center justify-center px-3 py-2"
+          style={{ color: fg }}
+          onDoubleClick={handleDoubleClick}
+        >
+          {editing ? (
+            <textarea
+              ref={textareaRef}
+              className="nodrag nopan w-full resize-none bg-transparent text-center text-sm font-medium leading-tight outline-none"
+              style={{ color: fg }}
+              value={draft}
+              rows={1}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={handleKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span className="pointer-events-none select-none text-center text-sm font-medium leading-tight">
+              {data.label ? (
+                data.label
+              ) : (
+                <span className="opacity-40">Label</span>
+              )}
+            </span>
+          )}
+        </div>
+
+        {/* Connection handles — hidden at rest, appear on node hover */}
+        <Handle
+          type="source"
+          id="top"
+          position={Position.Top}
+          className={HANDLE_CLASS}
+        />
+        <Handle
+          type="source"
+          id="right"
+          position={Position.Right}
+          className={HANDLE_CLASS}
+        />
+        <Handle
+          type="source"
+          id="bottom"
+          position={Position.Bottom}
+          className={HANDLE_CLASS}
+        />
+        <Handle
+          type="source"
+          id="left"
+          position={Position.Left}
+          className={HANDLE_CLASS}
+        />
       </div>
-
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="h-2! w-2! border-0! bg-white! opacity-0 transition-opacity"
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="h-2! w-2! border-0! bg-white! opacity-0 transition-opacity"
-      />
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left"
-        className="h-2! w-2! border-0! bg-white! opacity-0 transition-opacity"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        className="h-2! w-2! border-0! bg-white! opacity-0 transition-opacity"
-      />
-    </div>
+    </>
   );
 }
 

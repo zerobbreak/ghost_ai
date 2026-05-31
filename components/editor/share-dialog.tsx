@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, Link, Loader2, UserMinus, UserPlus, Users } from "lucide-react";
 import Image from "next/image";
 import {
@@ -113,7 +113,7 @@ export function ShareDialog({
     };
   }, [open, projectId]);
 
-  async function handleInvite(e: React.FormEvent) {
+  async function handleInvite(e: FormEvent) {
     e.preventDefault();
     setInviteError(null);
 

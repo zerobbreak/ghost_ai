@@ -4,7 +4,7 @@ title: "Utility components"
 
 # Utility components
 
-A number of utility components are avaialble.
+A number of utility components are available.
 
 ## Timestamp
 

@@ -52,7 +52,7 @@ for more information on setting this up. It will return a token in the following
 format, which you must return, as we are with `await response.json()` in the
 example above:
 
-```
+```json
 { "token": "..." }
 ```
 
@@ -62,7 +62,7 @@ If the returned token or data is invalid, Liveblocks will repeatedly retry the
 callback, and try to reconnect. If you wish to prevent this, manually return a
 token with the following format:
 
-```
+```json
 { "error": "forbidden", "reason": "..." }
 ```
 

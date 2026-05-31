@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 12: Shape Panel — Complete
+- Feature 18: Starter Templates — Complete
 
 ## Current Goal
 
@@ -26,6 +26,12 @@ Update this file whenever the current phase, active feature, or implementation s
 - `10-liveblocks-setup` — `liveblocks.config.ts` updated with `Presence` (cursor position + `isThinking`) and `UserMeta` (name, avatar, color); `@liveblocks/node` installed; `lib/liveblocks.ts` added with lazy-cached `Liveblocks` node client and `getUserColor` deterministic color helper; `POST /api/liveblocks-auth` added — requires Clerk auth, verifies project access via `getAccessibleProjectById`, ensures room exists with `getOrCreateRoom`, returns access-token session with user name/avatar/color; `npm run build` passes.
 - `11-base-canvas` — `types/canvas.ts` added (`NodeData`, `CanvasNode`, `CanvasEdge`); `components/editor/canvas-wrapper.tsx` added (`LiveblocksProvider` + `RoomProvider` + `ClientSideSuspense` + `CanvasErrorBoundary`); `components/editor/liveblocks-canvas.tsx` added (`useLiveblocksFlow` with suspense, `ReactFlow` with `MiniMap`, dot-pattern `Background`, `Cursors`, loose connection mode); canvas placeholder in `editor-workspace-client.tsx` replaced with `CanvasWrapper`; `npm run build` passes.
 - `12-shape-panel` — `types/canvas.ts` expanded with `NodeShape` union, `NODE_SHAPES`, `NODE_COLORS`, `DEFAULT_NODE_COLOR`; `components/editor/canvas-node.tsx` added (`CanvasNodeRenderer` — bordered rectangle with 4 `Handle`s, reads node `color`/`textColor`, highlights border when selected); `components/editor/shape-panel.tsx` added (floating pill-shaped toolbar at bottom-center, 6 inline-SVG shape buttons, drag payload via `application/canvas-shape` MIME type, default sizes per shape); `liveblocks-canvas.tsx` updated (typed `useLiveblocksFlow<CanvasNode, CanvasEdge>`, `nodeTypes` map, `dragover`/`drop` handlers using `screenToFlowPosition`, creates node via `onNodesChange` add change, mounts `ShapePanel`); `npm run build` passes.
+- `13-node-shape` — `canvas-node.tsx` updated: rectangle/pill/circle render via CSS (`backgroundColor` + `border` + `borderRadius`); diamond/hexagon/cylinder render as inline SVG with `preserveAspectRatio="none"` and `vectorEffect="non-scaling-stroke"`; selected state uses cyan `#00c8d4` border; `shape-panel.tsx` updated: `handleDragStart` suppresses browser ghost via `setDragImage` on a 1×1 blank canvas; window `dragover`/`dragend` listeners track cursor during drag; `DragPreview` portal renders a scaled ghost of the dragged shape (CSS for rect/pill/circle, SVG for diamond/hexagon/cylinder) at cursor center; preview is cleared on drop or cancel; `npm run build` passes.
+- `14-node-editing` — `components/editor/canvas-actions-context.tsx` added (`CanvasActionsProvider` + `useCanvasActions` hook); `canvas-node.tsx` updated: `NodeResizer` added (visible when selected, minWidth=80, minHeight=40, subtle cyan handles); inline label editing added (double-click opens textarea, Escape discards, Enter/blur commits, `nodrag nopan` prevents canvas interaction, placeholder shown when label empty); `liveblocks-canvas.tsx` updated: wraps with `CanvasActionsProvider`, `updateNodeLabel` callback uses `onNodesChange` with `replace` change type to sync label changes through Liveblocks; `pnpm run build` passes.
+- `15-node-color-toolbar` — selected canvas nodes show a floating color swatch toolbar using the predefined node color pairs; swatch selection updates node fill and paired text color through Liveblocks canvas state; `pnpm run build` passes.
+- `16-edge-behavior` — all node handles changed to `type="source"` with unique IDs (top/right/bottom/left) for any-to-any connections under `ConnectionMode.Loose`; `canvas-edge.tsx` added with `getSmoothStepPath` right-angle routing, wider invisible hit area, hover/selected stroke brightening, inline label editing via `EdgeLabelRenderer` at path midpoint, auto-sizing input, pill badge for saved labels, faint hint on active unlabelled edges; `updateEdgeLabel` wired through `CanvasActionsContext` and `onEdgesChange` replace; `EdgeMarkerDefs` provides dim/bright/selected arrow markers; `pnpm run build` passes.
+- `17-canvas-ergonomics` — `components/editor/control-bar.tsx` added (pill-shaped bar at bottom-left with zoom out/fit/in and undo/redo groups, thin divider, disabled buttons dimmed, uses `useHistory`/`useCanUndo`/`useCanRedo` from `@liveblocks/react`); `hooks/use-keyboard-shortcuts.ts` added (+/= zoom in, - zoom out, Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, skips editable targets); `liveblocks-canvas.tsx` updated to mount `ControlBar` in a `bottom-left` Panel and call `useKeyboardShortcuts`; `pnpm run build` passes.
+- `18-starter-templates` — `components/editor/starter-templates.ts` added (`CanvasTemplate` type, `CANVAS_TEMPLATES` with Microservices, CI/CD Pipeline, and Event-Driven System templates using shared node/edge types and `NODE_COLORS`); `components/editor/starter-templates-modal.tsx` added (Dialog with scrollable 3-column card grid, inline SVG diagram previews scaled to fixed viewport per template, Import button per card); `liveblocks-canvas.tsx` extended with `importTemplate` callback (clears all nodes+edges then adds template nodes+edges via `onNodesChange`/`onEdgesChange`, calls `fitView` after); `CanvasWrapper` and `EditorNavbar` updated with `isTemplatesOpen`/`onTemplatesOpenChange`/`onTemplatesClick` props; Templates button added to navbar right section; `pnpm run build` passes.
 
 ## In Progress
 
@@ -34,6 +40,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Implement the next editor workspace feature unit.
+
 
 
 
@@ -63,4 +70,4 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
-- Shape panel is live; users can drag any of the 6 shape buttons onto the canvas to create new nodes. All new nodes render as bordered rectangles via `CanvasNodeRenderer` (shape-specific SVG visuals deferred to a future spec).
+- Starter templates complete. Three built-in templates (Microservices, CI/CD Pipeline, Event-Driven System) accessible via the navbar Templates button; import replaces the current canvas through existing Liveblocks node/edge state.

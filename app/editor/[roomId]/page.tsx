@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AccessDenied } from "@/components/editor/access-denied";
 import { getCurrentIdentity, getAccessibleProjectById, projectExistsById } from "@/lib/project-access";
-import { getProjectsForCurrentUser } from "@/lib/projects";
+import { getProjectsForIdentity } from "@/lib/projects";
 import { EditorWorkspaceClient } from "./editor-workspace-client";
 
 interface EditorWorkspacePageProps {
@@ -19,7 +19,7 @@ export default async function EditorWorkspacePage({ params }: EditorWorkspacePag
 
   const [project, { owned, shared }] = await Promise.all([
     getAccessibleProjectById(roomId, identity),
-    getProjectsForCurrentUser(),
+    getProjectsForIdentity(identity),
   ]);
 
   if (!project) {

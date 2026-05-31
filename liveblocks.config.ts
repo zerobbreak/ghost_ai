@@ -1,3 +1,6 @@
+import type { LiveblocksFlow } from "@liveblocks/react-flow";
+import type { CanvasNode, CanvasEdge } from "./types/canvas";
+
 declare global {
   interface Liveblocks {
     Presence: {
@@ -5,7 +8,11 @@ declare global {
       isThinking: boolean;
     };
 
-    Storage: {};
+    // "flow" is the default storage key used by useLiveblocksFlow; it
+    // initialises its own storage so the field is optional here.
+    Storage: {
+      flow?: LiveblocksFlow<CanvasNode, CanvasEdge>;
+    };
 
     UserMeta: {
       id: string;

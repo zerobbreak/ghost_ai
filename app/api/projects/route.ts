@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
       ownerId: userId,
       name,
     },
+    select: {
+      id: true,
+      name: true,
+    },
   });
 
   return Response.json({ project }, { status: 201 });

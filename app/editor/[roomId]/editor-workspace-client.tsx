@@ -28,6 +28,7 @@ export function EditorWorkspaceClient({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [owned, setOwned] = useState(ownedProjects);
   const [shared, setShared] = useState(sharedProjects);
 
@@ -35,12 +36,6 @@ export function EditorWorkspaceClient({
     setOwned(ownedProjects);
     setShared(sharedProjects);
   }, [ownedProjects, sharedProjects]);
-
-  useEffect(() => {
-    const handleFocus = () => router.refresh();
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [router]);
 
   const actions = useProjectActions({
     activeProjectId: projectId,
@@ -62,6 +57,7 @@ export function EditorWorkspaceClient({
         isAiSidebarOpen={isAiSidebarOpen}
         onAiSidebarToggle={() => setIsAiSidebarOpen((prev) => !prev)}
         onShareClick={() => setIsShareOpen(true)}
+        onTemplatesClick={() => setIsTemplatesOpen(true)}
       />
 
       <ProjectSidebar
@@ -77,7 +73,11 @@ export function EditorWorkspaceClient({
 
       <main className="absolute inset-0 top-12 flex overflow-hidden">
         <section className="flex flex-1 overflow-hidden">
-          <CanvasWrapper roomId={projectId} />
+          <CanvasWrapper
+            roomId={projectId}
+            isTemplatesOpen={isTemplatesOpen}
+            onTemplatesOpenChange={setIsTemplatesOpen}
+          />
         </section>
       </main>
 

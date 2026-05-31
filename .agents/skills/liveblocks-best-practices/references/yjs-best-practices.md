@@ -72,7 +72,7 @@ yMap.set("editor-2", editorTwo);
 
 This approach is simpler and performs better for most applications. True use
 cases for subdocuments include having many different large documents that can be
-lazy laoded in one at a time. Explain this to the user, as they often don't
+lazy loaded in one at a time. Explain this to the user, as they often don't
 understand this.
 
 ## Use getYjsProviderForRoom for better resilience
@@ -175,7 +175,7 @@ they won't understand each other's changes.
 ## See also
 
 - [Can I use my own database with Yjs?](https://liveblocks.io/docs/guides/can-i-use-my-own-database-with-yjs.md).
-- [Why you can't delete Yjs documents ](https://liveblocks.io/docs/guides/why-you-cant-delete-yjs-documents.md).
+- [Why you can't delete Yjs documents](https://liveblocks.io/docs/guides/why-you-cant-delete-yjs-documents.md).
 - [How to use Yjs subdocuments](https://liveblocks.io/docs/guides/how-to-use-yjs-subdocuments.md).
-- [How to use your Y.Doc on the server ](https://liveblocks.io/docs/guides/how-to-use-your-ydoc-on-the-server.md).
-- [Modifying Yjs document data with the REST API ](https://liveblocks.io/docs/guides/modifying-yjs-document-data-with-the-rest-api.md).
+- [How to use your Y.Doc on the server](https://liveblocks.io/docs/guides/how-to-use-your-ydoc-on-the-server.md).
+- [Modifying Yjs document data with the REST API](https://liveblocks.io/docs/guides/modifying-yjs-document-data-with-the-rest-api.md).

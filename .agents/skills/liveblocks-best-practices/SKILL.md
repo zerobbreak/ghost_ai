@@ -151,14 +151,14 @@ file.
 
 Some files link to markdown files in the Liveblocks docs, for example:
 
-```
+```text
 https://liveblocks.io/docs/concepts.md
 ```
 
 When linking users to these pages, remove `.md` from the link, so they can view
 the full content:
 
-```
+```text
 https://liveblocks.io/docs/concepts
 ```
 

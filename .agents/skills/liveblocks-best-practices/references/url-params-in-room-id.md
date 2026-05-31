@@ -4,7 +4,7 @@ title: "URL params in room ID"
 
 # URL params in room ID
 
-When setting up rooms, which often represend documents in your application, its
+When setting up rooms, which often represent documents in your application, it's
 recommended to use URL params as room IDs. For example, common apps use these
 formats:
 
@@ -76,7 +76,7 @@ export default async function Page({
 
 ### Document title in URL
 
-Some apps also incorportate document titles in the URL. Notion does this, for
+Some apps also incorporate document titles in the URL. Notion does this, for
 example, both of these work:
 
 ```

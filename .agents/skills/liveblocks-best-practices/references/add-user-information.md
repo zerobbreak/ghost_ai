@@ -11,7 +11,7 @@ and resolvers to show user info.
 
 First authenticate your users in an API endpoint. This is using ID tokens.
 `name` and `color` are used in text editors to display the user's caret. Custom
-properties can be accessed with `useSelf` or `useOthers`on the front end. These
+properties can be accessed with `useSelf` or `useOthers` on the front end. These
 properties are NOT used in comment threads, notifications, etc.
 
 ```ts
@@ -54,7 +54,7 @@ declare global {
 ```
 
 See the `authenticating-with-id-tokens` reference for more information on this
-recommedned authentication method. An alternative is to use access tokens, see
+recommended authentication method. An alternative is to use access tokens, see
 the `authenticating-with-access-tokens` reference for more information.
 
 ## Resolving users
@@ -94,7 +94,7 @@ function App() {
 }
 ```
 
-Users must be return in the same order they are passed. The array must be the
+Users must be returned in the same order they are passed. The array must be the
 same length as the `userIds` array. You can also return custom information, for
 example, a user’s `color`:
 
