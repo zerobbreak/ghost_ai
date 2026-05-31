@@ -114,24 +114,6 @@ const CORNER_HANDLE_STYLE: CSSProperties = {
   opacity: 0.8,
 };
 
-const SIDE_H_HANDLE_STYLE: CSSProperties = {
-  width: 32,
-  height: 6,
-  borderRadius: 3,
-  border: "none",
-  backgroundColor: "#00c8d4",
-  opacity: 0.7,
-};
-
-const SIDE_V_HANDLE_STYLE: CSSProperties = {
-  width: 6,
-  height: 32,
-  borderRadius: 3,
-  border: "none",
-  backgroundColor: "#00c8d4",
-  opacity: 0.7,
-};
-
 function ResizeHandles() {
   return (
     <>
@@ -144,24 +126,6 @@ function ResizeHandles() {
           minWidth={MIN_WIDTH}
           minHeight={MIN_HEIGHT}
           style={CORNER_HANDLE_STYLE}
-        />
-      ))}
-      {(["top", "bottom"] as const).map((pos) => (
-        <NodeResizeControl
-          key={pos}
-          position={pos}
-          minWidth={MIN_WIDTH}
-          minHeight={MIN_HEIGHT}
-          style={SIDE_H_HANDLE_STYLE}
-        />
-      ))}
-      {(["left", "right"] as const).map((pos) => (
-        <NodeResizeControl
-          key={pos}
-          position={pos}
-          minWidth={MIN_WIDTH}
-          minHeight={MIN_HEIGHT}
-          style={SIDE_V_HANDLE_STYLE}
         />
       ))}
     </>
@@ -223,12 +187,12 @@ function ColorToolbar({ nodeId, activeFill, activeText }: ColorToolbarProps) {
 // Node renderer
 // ---------------------------------------------------------------------------
 
-// Shared class string for all four connection handles
-// - opacity-0 at rest, visible on node hover (group-hover), full + glow on direct hover
-const HANDLE_CLASS =
-  "h-3! w-3! rounded-full! border-2! border-[#00c8d4]! bg-[#18181c]! " +
-  "opacity-0 transition-all duration-150 " +
-  "group-hover:opacity-50 hover:opacity-100 hover:shadow-[0_0_8px_#00c8d4]";
+const CONNECTION_HANDLES = [
+  { id: "top", position: Position.Top },
+  { id: "right", position: Position.Right },
+  { id: "bottom", position: Position.Bottom },
+  { id: "left", position: Position.Left },
+] as const;
 
 function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode>) {
   const shape = data.shape ?? "rectangle";
@@ -343,31 +307,17 @@ function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode>) {
           )}
         </div>
 
-        {/* Connection handles — hidden at rest, appear on node hover */}
-        <Handle
-          type="source"
-          id="top"
-          position={Position.Top}
-          className={HANDLE_CLASS}
-        />
-        <Handle
-          type="source"
-          id="right"
-          position={Position.Right}
-          className={HANDLE_CLASS}
-        />
-        <Handle
-          type="source"
-          id="bottom"
-          position={Position.Bottom}
-          className={HANDLE_CLASS}
-        />
-        <Handle
-          type="source"
-          id="left"
-          position={Position.Left}
-          className={HANDLE_CLASS}
-        />
+        {/* Circular connection ports sit on the node boundary so edges terminate cleanly. */}
+        {CONNECTION_HANDLES.map((handle) => (
+          <Handle
+            key={handle.id}
+            type="source"
+            id={handle.id}
+            position={handle.position}
+            isConnectable
+            className="conn-handle"
+          />
+        ))}
       </div>
     </>
   );

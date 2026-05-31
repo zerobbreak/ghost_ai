@@ -8,7 +8,12 @@ import {
   Maximize2,
   Undo2,
   Redo2,
+  Loader2,
+  Check,
+  AlertCircle,
 } from "lucide-react";
+import type { SaveStatus } from "@/hooks/use-canvas-autosave";
+
 interface ViewportActions {
   zoomIn: (options?: { duration?: number }) => void;
   zoomOut: (options?: { duration?: number }) => void;
@@ -17,9 +22,10 @@ interface ViewportActions {
 
 interface ControlBarProps {
   rfInstance: ViewportActions | null;
+  saveStatus?: SaveStatus;
 }
 
-export function ControlBar({ rfInstance }: ControlBarProps) {
+export function ControlBar({ rfInstance, saveStatus = "idle" }: ControlBarProps) {
   const { undo, redo } = useHistory();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
@@ -65,8 +71,55 @@ export function ControlBar({ rfInstance }: ControlBarProps) {
           <Redo2 size={14} />
         </ControlButton>
       </div>
+
+      {saveStatus !== "idle" && (
+        <>
+          <div className="mx-1.5 h-4 w-px bg-white/15" />
+          <SaveIndicator status={saveStatus} />
+        </>
+      )}
     </div>
   );
+}
+
+function SaveIndicator({ status }: { status: SaveStatus }) {
+  if (status === "saving") {
+    return (
+      <div
+        className="flex items-center gap-1 px-1 text-white/50"
+        title="Saving…"
+      >
+        <Loader2 size={12} className="animate-spin" />
+        <span className="text-[10px] leading-none">Saving</span>
+      </div>
+    );
+  }
+
+  if (status === "saved") {
+    return (
+      <div
+        className="flex items-center gap-1 px-1 text-emerald-400/80"
+        title="Saved"
+      >
+        <Check size={12} />
+        <span className="text-[10px] leading-none">Saved</span>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div
+        className="flex items-center gap-1 px-1 text-red-400/80"
+        title="Save failed"
+      >
+        <AlertCircle size={12} />
+        <span className="text-[10px] leading-none">Error</span>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 interface ControlButtonProps {

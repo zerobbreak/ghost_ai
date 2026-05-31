@@ -5,7 +5,7 @@ declare global {
   interface Liveblocks {
     Presence: {
       cursor: { x: number; y: number } | null;
-      isThinking: boolean;
+      thinking: boolean;
     };
 
     // "flow" is the default storage key used by useLiveblocksFlow; it
@@ -23,11 +23,11 @@ declare global {
       };
     };
 
-    RoomEvent: {};
+    RoomEvent: never;
 
-    ThreadMetadata: {};
+    ThreadMetadata: Record<string, never>;
 
-    RoomInfo: {};
+    RoomInfo: Record<string, never>;
   }
 }
 

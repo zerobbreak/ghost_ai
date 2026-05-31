@@ -22,8 +22,12 @@ export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeCl
   const [shared, setShared] = useState(sharedProjects);
 
   useEffect(() => {
-    setOwned(ownedProjects);
-    setShared(sharedProjects);
+    const syncTimer = window.setTimeout(() => {
+      setOwned(ownedProjects);
+      setShared(sharedProjects);
+    }, 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [ownedProjects, sharedProjects]);
 
   const actions = useProjectActions({
@@ -39,6 +43,7 @@ export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeCl
   return (
     <div className="relative flex flex-col h-screen overflow-hidden bg-(--color-bg-base)">
       <EditorNavbar
+        context="home"
         isSidebarOpen={isSidebarOpen}
         onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
       />

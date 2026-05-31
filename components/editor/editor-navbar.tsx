@@ -5,6 +5,7 @@ import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
 interface EditorNavbarProps {
+  context: "home" | "workspace";
   isSidebarOpen: boolean;
   onSidebarToggle: () => void;
   projectName?: string;
@@ -16,6 +17,7 @@ interface EditorNavbarProps {
 }
 
 export function EditorNavbar({
+  context,
   isSidebarOpen,
   onSidebarToggle,
   projectName,
@@ -25,6 +27,8 @@ export function EditorNavbar({
   onShareClick,
   onTemplatesClick,
 }: EditorNavbarProps) {
+  const showUserButton = context === "home";
+
   return (
     <header className="fixed top-0 left-0 right-0 z-60 flex h-12 items-center border-b border-(--color-border-default) bg-(--color-bg-surface) px-3">
       {/* Left */}
@@ -91,7 +95,11 @@ export function EditorNavbar({
             </Button>
           </>
         ) : null}
-        <UserButton />
+        {showUserButton ? (
+          <div className="flex h-8 w-8 items-center justify-center">
+            <UserButton />
+          </div>
+        ) : null}
       </div>
     </header>
   );

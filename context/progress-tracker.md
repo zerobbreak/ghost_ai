@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 18: Starter Templates — Complete
+- Feature 21: Canvas Autosave — Bugfix complete
 
 ## Current Goal
 
@@ -32,6 +32,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `16-edge-behavior` — all node handles changed to `type="source"` with unique IDs (top/right/bottom/left) for any-to-any connections under `ConnectionMode.Loose`; `canvas-edge.tsx` added with `getSmoothStepPath` right-angle routing, wider invisible hit area, hover/selected stroke brightening, inline label editing via `EdgeLabelRenderer` at path midpoint, auto-sizing input, pill badge for saved labels, faint hint on active unlabelled edges; `updateEdgeLabel` wired through `CanvasActionsContext` and `onEdgesChange` replace; `EdgeMarkerDefs` provides dim/bright/selected arrow markers; `pnpm run build` passes.
 - `17-canvas-ergonomics` — `components/editor/control-bar.tsx` added (pill-shaped bar at bottom-left with zoom out/fit/in and undo/redo groups, thin divider, disabled buttons dimmed, uses `useHistory`/`useCanUndo`/`useCanRedo` from `@liveblocks/react`); `hooks/use-keyboard-shortcuts.ts` added (+/= zoom in, - zoom out, Ctrl+Z undo, Ctrl+Shift+Z / Ctrl+Y redo, skips editable targets); `liveblocks-canvas.tsx` updated to mount `ControlBar` in a `bottom-left` Panel and call `useKeyboardShortcuts`; `pnpm run build` passes.
 - `18-starter-templates` — `components/editor/starter-templates.ts` added (`CanvasTemplate` type, `CANVAS_TEMPLATES` with Microservices, CI/CD Pipeline, and Event-Driven System templates using shared node/edge types and `NODE_COLORS`); `components/editor/starter-templates-modal.tsx` added (Dialog with scrollable 3-column card grid, inline SVG diagram previews scaled to fixed viewport per template, Import button per card); `liveblocks-canvas.tsx` extended with `importTemplate` callback (clears all nodes+edges then adds template nodes+edges via `onNodesChange`/`onEdgesChange`, calls `fitView` after); `CanvasWrapper` and `EditorNavbar` updated with `isTemplatesOpen`/`onTemplatesOpenChange`/`onTemplatesClick` props; Templates button added to navbar right section; `pnpm run build` passes.
+- `19-presence-avatars-cursors` — editor canvas now shows a room-scoped participant avatar group with collaborator overflow and a separate Clerk `UserButton`; Liveblocks presence broadcasts cursor coordinates from React Flow mouse events, clears them on leave, and renders colored collaborator cursors with name badges; `Presence` now uses `cursor` plus `thinking`; `pnpm run build` passes.
+- `20-ai-sidebar-shell` — AI workspace sidebar split into `components/editor/ai-sidebar.tsx` with controlled right-side slide-over behavior, polished panel layering/spacing, AI Architect chat shell, starter prompt chips, local input handling, and static Specs preview; `pnpm run build` passes.
+- `21-canvas-autosave` — `@vercel/blob` installed; `PUT/GET /api/projects/[projectId]/canvas` routes upload canvas JSON to Vercel Blob and store the URL on the Prisma project record; `hooks/use-canvas-autosave.ts` debounces saves (2 s) and tracks saving/saved/error status; `liveblocks-canvas.tsx` loads saved state on mount when the Liveblocks room is empty, skips load if nodes/edges already exist; `control-bar.tsx` shows a save-status indicator (spinner/check/alert); `pnpm run build` passes.
 
 ## In Progress
 
@@ -70,4 +73,8 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Session Notes
 
-- Starter templates complete. Three built-in templates (Microservices, CI/CD Pipeline, Event-Driven System) accessible via the navbar Templates button; import replaces the current canvas through existing Liveblocks node/edge state.
+- Feature 21 is complete. Canvas JSON is stored in Vercel Blob at `canvas/{projectId}.json`; the blob URL is persisted on the Prisma project record in `canvasJsonPath`. Autosave fires 2 s after the last canvas change, after the initial saved-state load has completed. Load-on-mount is skipped if the Liveblocks room already has active nodes or edges to protect collaborative sessions.
+- Canvas connection handles now preserve the selected source and target handle IDs through Liveblocks edge state, so edges can attach to top, right, bottom, or left handles.
+- The shared editor navbar now receives an explicit `home` or `workspace` context so the Clerk `UserButton` remains on editor home but is omitted from workspace project pages.
+- Canvas nodes now show larger circular connection ports on the node boundary, so top, right, bottom, and left connections terminate against their respective nodes.
+- Canvas autosave now treats loaded room state as a baseline on reload, queues overlapping saves, and recovers valid canvas snapshots from malformed or concatenated saved JSON without overwriting the current project state.

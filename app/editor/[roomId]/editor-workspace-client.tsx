@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquareText } from "lucide-react";
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
@@ -33,8 +33,12 @@ export function EditorWorkspaceClient({
   const [shared, setShared] = useState(sharedProjects);
 
   useEffect(() => {
-    setOwned(ownedProjects);
-    setShared(sharedProjects);
+    const syncTimer = window.setTimeout(() => {
+      setOwned(ownedProjects);
+      setShared(sharedProjects);
+    }, 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [ownedProjects, sharedProjects]);
 
   const actions = useProjectActions({
@@ -50,6 +54,7 @@ export function EditorWorkspaceClient({
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-(--color-bg-base)">
       <EditorNavbar
+        context="workspace"
         isSidebarOpen={isSidebarOpen}
         onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         projectName={projectName}
@@ -81,23 +86,7 @@ export function EditorWorkspaceClient({
         </section>
       </main>
 
-      <aside
-        className={[
-          "absolute bottom-0 right-0 top-12 z-50 flex w-80 flex-col border-l border-(--color-border-default) bg-(--color-bg-surface)",
-          "transition-transform duration-200 ease-in-out",
-          isAiSidebarOpen ? "translate-x-0" : "translate-x-full",
-        ].join(" ")}
-      >
-        <div className="flex h-12 items-center gap-2 border-b border-(--color-border-default) px-4">
-          <MessageSquareText className="h-4 w-4 text-(--color-text-muted)" />
-          <p className="text-sm font-medium text-(--color-text-primary)">AI Assistant</p>
-        </div>
-        <div className="flex flex-1 items-center justify-center px-4 text-center">
-          <p className="text-sm text-(--color-text-muted)">
-            AI chat sidebar placeholder for upcoming features.
-          </p>
-        </div>
-      </aside>
+      <AiSidebar isOpen={isAiSidebarOpen} onClose={() => setIsAiSidebarOpen(false)} />
 
       <ProjectDialogs
         dialog={actions.dialog}

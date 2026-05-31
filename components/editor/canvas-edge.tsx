@@ -40,7 +40,7 @@ function CanvasEdgeComponent({
 
   const label = data?.label ?? "";
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
+  const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -49,6 +49,8 @@ function CanvasEdgeComponent({
     targetPosition,
     borderRadius: 8,
   });
+  const labelX = (sourceX + targetX) / 2;
+  const labelY = (sourceY + targetY) / 2;
 
   const stroke = selected
     ? SELECTED_STROKE
@@ -124,6 +126,7 @@ function CanvasEdgeComponent({
             position: "absolute",
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             pointerEvents: "all",
+            zIndex: 20,
           }}
           className="nodrag nopan"
           onDoubleClick={(e) => {
@@ -144,21 +147,21 @@ function CanvasEdgeComponent({
               onMouseDown={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="nodrag nopan min-w-[60px] rounded border border-[#00c8d4] bg-[#18181c] px-2 py-0.5 text-center text-xs text-[#e0e0f0] outline-none"
+              className="nodrag nopan min-w-[60px] rounded-full border border-[#00c8d4] bg-[#18181c] px-2.5 py-1 text-center text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] outline-none"
               style={{
                 width: `${Math.max(60, draft.length * 8 + 24)}px`,
               }}
             />
           ) : label ? (
             <span
-              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2 py-0.5 text-xs text-[#a0a0b8] transition-colors hover:border-[#00c8d4] hover:text-[#e0e0f0]"
+              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:border-[#00c8d4]"
               title="Double-click to edit"
             >
               {label}
             </span>
           ) : (selected || hovered) ? (
             <span
-              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2 py-0.5 text-xs text-[#454560] transition-colors hover:text-[#a0a0b8]"
+              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#454560] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:text-[#a0a0b8]"
               title="Double-click to add label"
             >
               + Add label
