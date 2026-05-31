@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
@@ -16,9 +16,23 @@ interface EditorHomeClientProps {
 
 export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeClientProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const actions = useProjectActions();
+  const [owned, setOwned] = useState(ownedProjects);
+  const [shared, setShared] = useState(sharedProjects);
 
-  const projects = [...ownedProjects, ...sharedProjects];
+  useEffect(() => {
+    setOwned(ownedProjects);
+    setShared(sharedProjects);
+  }, [ownedProjects, sharedProjects]);
+
+  const actions = useProjectActions({
+    onCreateSuccess: (project) => {
+      const entry: SidebarProject = { id: project.id, name: project.name, owned: true };
+      setOwned((prev) => [entry, ...prev.filter((p) => p.id !== project.id)]);
+      setIsSidebarOpen(true);
+    },
+  });
+
+  const projects = [...owned, ...shared];
 
   return (
     <div className="relative flex flex-col h-screen overflow-hidden bg-(--color-bg-base)">

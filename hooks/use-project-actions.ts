@@ -38,7 +38,16 @@ export interface UseProjectActionsReturn {
   handleDelete: () => Promise<void>;
 }
 
-export function useProjectActions(activeProjectId?: string): UseProjectActionsReturn {
+export interface UseProjectActionsOptions {
+  activeProjectId?: string;
+  /** Called after a project is created so the sidebar can update without a full reload. */
+  onCreateSuccess?: (project: { id: string; name: string }) => void;
+}
+
+export function useProjectActions(
+  options: UseProjectActionsOptions = {}
+): UseProjectActionsReturn {
+  const { activeProjectId, onCreateSuccess } = options;
   const router = useRouter();
   const [dialog, setDialog] = useState<DialogType>(null);
   const [selectedProject, setSelectedProject] = useState<SidebarProject | null>(null);
@@ -83,9 +92,11 @@ export function useProjectActions(activeProjectId?: string): UseProjectActionsRe
         body: JSON.stringify({ name: trimmed }),
       });
       if (!res.ok) throw new Error("Failed to create project");
-      const data = (await res.json()) as { project: { id: string } };
+      const data = (await res.json()) as { project: { id: string; name: string } };
       closeDialog();
-      router.push(`/editor/${data.project.id}`);
+      onCreateSuccess?.(data.project);
+      router.refresh();
+      // Navigate to workspace once /editor/[projectId] exists (feature not built yet).
     } finally {
       setIsLoading(false);
     }
