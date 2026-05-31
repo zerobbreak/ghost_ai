@@ -3,15 +3,15 @@
 import { Pencil, Trash2, X, Plus, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { Project } from "@/lib/mock-projects";
+import type { SidebarProject } from "@/lib/projects";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  projects: Project[];
+  projects: SidebarProject[];
   onNewProject: () => void;
-  onRenameProject: (project: Project) => void;
-  onDeleteProject: (project: Project) => void;
+  onRenameProject: (project: SidebarProject) => void;
+  onDeleteProject: (project: SidebarProject) => void;
 }
 
 function EmptyPlaceholder({ label }: { label: string }) {
@@ -30,7 +30,7 @@ function ProjectItem({
   onRename,
   onDelete,
 }: {
-  project: Project;
+  project: SidebarProject;
   onRename?: () => void;
   onDelete?: () => void;
 }) {

@@ -11,14 +11,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { UseProjectDialogsReturn } from "@/hooks/use-project-dialogs";
+import type { UseProjectActionsReturn } from "@/hooks/use-project-actions";
 
 type Props = Pick<
-  UseProjectDialogsReturn,
+  UseProjectActionsReturn,
   | "dialog"
   | "selectedProject"
   | "createName"
-  | "createSlug"
+  | "createRoomId"
   | "renameName"
   | "isLoading"
   | "closeDialog"
@@ -33,7 +33,7 @@ export function ProjectDialogs({
   dialog,
   selectedProject,
   createName,
-  createSlug,
+  createRoomId,
   renameName,
   isLoading,
   closeDialog,
@@ -75,10 +75,10 @@ export function ProjectDialogs({
               />
             </div>
 
-            {createName && (
+            {createRoomId && (
               <p className="text-xs text-muted-foreground">
-                Slug:{" "}
-                <span className="font-mono text-foreground/70">{createSlug}</span>
+                Room ID:{" "}
+                <span className="font-mono text-foreground/70">{createRoomId}</span>
               </p>
             )}
           </div>

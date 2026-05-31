@@ -1,15 +1,25 @@
 import { PrismaClient } from "../app/generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function createPrismaClient(): PrismaClient {
-  const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL,
-  });
+  const url = process.env.DATABASE_URL ?? "";
+
+  if (url.startsWith("prisma+postgres://") || url.startsWith("prisma://")) {
+    // Accelerate path: pass the URL via accelerateUrl (Prisma 7 API).
+    // Do NOT use a driver adapter here — PrismaPg expects a direct TCP URL
+    // and will fail if given a prisma:// or prisma+postgres:// string.
+    return new PrismaClient({ accelerateUrl: url }).$extends(
+      withAccelerate()
+    ) as unknown as PrismaClient;
+  }
+
+  // Direct connection path (local dev without Accelerate).
+  const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({ adapter });
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 

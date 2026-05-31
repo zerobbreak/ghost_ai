@@ -11,7 +11,7 @@ interface EditorNavbarProps {
 
 export function EditorNavbar({ isSidebarOpen, onSidebarToggle }: EditorNavbarProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-12 items-center border-b border-(--color-border-default) bg-(--color-bg-surface) px-3">
+    <header className="fixed top-0 left-0 right-0 z-60 flex h-12 items-center border-b border-(--color-border-default) bg-(--color-bg-surface) px-3">
       {/* Left */}
       <div className="flex items-center">
         <Button
