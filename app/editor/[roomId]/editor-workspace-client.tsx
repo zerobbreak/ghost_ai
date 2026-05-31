@@ -7,6 +7,7 @@ import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ShareDialog } from "@/components/editor/share-dialog";
+import { CanvasWrapper } from "@/components/editor/canvas-wrapper";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import type { SidebarProject } from "@/lib/projects";
 
@@ -34,6 +35,12 @@ export function EditorWorkspaceClient({
     setOwned(ownedProjects);
     setShared(sharedProjects);
   }, [ownedProjects, sharedProjects]);
+
+  useEffect(() => {
+    const handleFocus = () => router.refresh();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [router]);
 
   const actions = useProjectActions({
     activeProjectId: projectId,
@@ -69,13 +76,8 @@ export function EditorWorkspaceClient({
       />
 
       <main className="absolute inset-0 top-12 flex overflow-hidden">
-        <section className="flex flex-1 items-center justify-center bg-(--color-bg-base)">
-          <div className="text-center">
-            <h1 className="text-lg font-semibold text-(--color-text-primary)">Canvas coming soon</h1>
-            <p className="mt-2 text-sm text-(--color-text-muted)">
-              Real-time editing will be added in the next feature.
-            </p>
-          </div>
+        <section className="flex flex-1 overflow-hidden">
+          <CanvasWrapper roomId={projectId} />
         </section>
       </main>
 

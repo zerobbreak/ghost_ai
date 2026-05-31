@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 09: Share Dialog — Complete
+- Feature 12: Shape Panel — Complete
 
 ## Current Goal
 
@@ -23,6 +23,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `07-wire-editor-home` — `lib/projects.ts` (server-side data helper, `SidebarProject` type, owned + shared project fetch via Prisma + Clerk `currentUser()`); `hooks/use-project-actions.ts` (real API CRUD hook: create navigates to `/editor/[id]`, rename refreshes, delete redirects if active or refreshes); `app/editor/page.tsx` converted to async server component; `app/editor/editor-home-client.tsx` client wrapper; sidebar and dialogs updated to use real types and `createRoomId` preview.
 - `08-editor-workspace-shell` — `lib/project-access.ts` added (`getCurrentIdentity`, owner/collaborator membership checks, `getAccessibleProjectById`); `/editor/[roomId]` server route added with unauthenticated redirect to `/sign-in` and `AccessDenied` fallback for missing/unauthorized projects; workspace client shell added with project-aware navbar, highlighted active room in `ProjectSidebar`, canvas placeholder, and AI sidebar placeholder.
 - `09-share-dialog` — `GET/POST /api/projects/[projectId]/collaborators` and `DELETE /api/projects/[projectId]/collaborators/[email]` added with owner-only enforcement; Clerk Backend API used to enrich collaborator emails with display name and avatar; `components/editor/share-dialog.tsx` built (owner invite + remove, collaborator read-only view, copy-link with temporary "Copied!" feedback); Share button in `EditorNavbar` wired to open the dialog from `EditorWorkspaceClient`; `npm run build` passes.
+- `10-liveblocks-setup` — `liveblocks.config.ts` updated with `Presence` (cursor position + `isThinking`) and `UserMeta` (name, avatar, color); `@liveblocks/node` installed; `lib/liveblocks.ts` added with lazy-cached `Liveblocks` node client and `getUserColor` deterministic color helper; `POST /api/liveblocks-auth` added — requires Clerk auth, verifies project access via `getAccessibleProjectById`, ensures room exists with `getOrCreateRoom`, returns access-token session with user name/avatar/color; `npm run build` passes.
+- `11-base-canvas` — `types/canvas.ts` added (`NodeData`, `CanvasNode`, `CanvasEdge`); `components/editor/canvas-wrapper.tsx` added (`LiveblocksProvider` + `RoomProvider` + `ClientSideSuspense` + `CanvasErrorBoundary`); `components/editor/liveblocks-canvas.tsx` added (`useLiveblocksFlow` with suspense, `ReactFlow` with `MiniMap`, dot-pattern `Background`, `Cursors`, loose connection mode); canvas placeholder in `editor-workspace-client.tsx` replaced with `CanvasWrapper`; `npm run build` passes.
+- `12-shape-panel` — `types/canvas.ts` expanded with `NodeShape` union, `NODE_SHAPES`, `NODE_COLORS`, `DEFAULT_NODE_COLOR`; `components/editor/canvas-node.tsx` added (`CanvasNodeRenderer` — bordered rectangle with 4 `Handle`s, reads node `color`/`textColor`, highlights border when selected); `components/editor/shape-panel.tsx` added (floating pill-shaped toolbar at bottom-center, 6 inline-SVG shape buttons, drag payload via `application/canvas-shape` MIME type, default sizes per shape); `liveblocks-canvas.tsx` updated (typed `useLiveblocksFlow<CanvasNode, CanvasEdge>`, `nodeTypes` map, `dragover`/`drop` handlers using `screenToFlowPosition`, creates node via `onNodesChange` add change, mounts `ShapePanel`); `npm run build` passes.
 
 ## In Progress
 
@@ -30,7 +33,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Implement the next editor workspace feature unit (canvas/live collaboration scope).
+- Implement the next editor workspace feature unit.
 
 
 
@@ -53,8 +56,11 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Multi-file Prisma schema** — `prisma.config.ts` sets `schema: "prisma/"` so all `*.prisma` files in the folder are merged; datasource and generator live in `schema.prisma`, models in `prisma/models/`.
 - **No `url`/`directUrl` in schema** — Prisma 7 removed these from the schema file; the connection URL lives exclusively in `prisma.config.ts` → `datasource.url`.
 - **Workspace access checks centralized in `lib/project-access.ts`** — server routes/pages resolve Clerk identity (`userId` + primary email) and evaluate owner-or-collaborator membership through one shared helper to keep authorization behavior consistent.
+- **Liveblocks Node client is lazy-cached** — `getLiveblocks()` in `lib/liveblocks.ts` defers secret-key validation to first call so `next build` does not fail when `LIVEBLOCKS_SECRET_KEY` is absent.
+- **Access-token auth over ID-token auth** — simpler to wire room-level `FULL_ACCESS` grants explicitly per-request; room is always created by the auth route before the session is issued.
+- **`useLiveblocksFlow` requires explicit generic types for `add` changes** — `useLiveblocksFlow<CanvasNode, CanvasEdge>()` must be typed explicitly for `onNodesChange` to accept `{ type: 'add', item: CanvasNode }` without TypeScript errors.
+- **Drag-to-canvas uses `application/canvas-shape` MIME type** — drag payload is JSON-serialized `{ shape, width, height }`; `screenToFlowPosition` centers the node on the drop point.
 
 ## Session Notes
 
-- Workspace shell now exists at `/editor/[roomId]`; real canvas/Liveblocks logic is intentionally still pending per feature scope.
-- Share dialog is fully functional; collaborator enrichment uses `clerkClient().users.getUserList()` server-side — falls back gracefully to email-only if Clerk lookup fails.
+- Shape panel is live; users can drag any of the 6 shape buttons onto the canvas to create new nodes. All new nodes render as bordered rectangles via `CanvasNodeRenderer` (shape-specific SVG visuals deferred to a future spec).

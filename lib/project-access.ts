@@ -68,3 +68,11 @@ export async function hasProjectAccess(
   const project = await getAccessibleProjectById(projectId, identity);
   return Boolean(project);
 }
+
+export async function projectExistsById(projectId: string): Promise<boolean> {
+  const row = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+  return row !== null;
+}

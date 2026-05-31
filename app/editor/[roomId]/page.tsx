@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AccessDenied } from "@/components/editor/access-denied";
-import { getCurrentIdentity, getAccessibleProjectById } from "@/lib/project-access";
+import { getCurrentIdentity, getAccessibleProjectById, projectExistsById } from "@/lib/project-access";
 import { getProjectsForCurrentUser } from "@/lib/projects";
 import { EditorWorkspaceClient } from "./editor-workspace-client";
 
@@ -23,6 +23,10 @@ export default async function EditorWorkspacePage({ params }: EditorWorkspacePag
   ]);
 
   if (!project) {
+    const exists = await projectExistsById(roomId);
+    if (!exists) {
+      redirect("/editor");
+    }
     return <AccessDenied />;
   }
 

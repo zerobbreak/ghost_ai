@@ -26,6 +26,12 @@ export function EditorHomeClient({ ownedProjects, sharedProjects }: EditorHomeCl
     setShared(sharedProjects);
   }, [ownedProjects, sharedProjects]);
 
+  useEffect(() => {
+    const handleFocus = () => router.refresh();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [router]);
+
   const actions = useProjectActions({
     onCreateSuccess: (project) => {
       const entry: SidebarProject = { id: project.id, name: project.name, owned: true };

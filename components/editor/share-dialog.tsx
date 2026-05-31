@@ -76,6 +76,15 @@ export function ShareDialog({
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = null;
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
