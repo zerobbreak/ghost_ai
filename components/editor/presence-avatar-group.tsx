@@ -2,6 +2,8 @@
 
 import { UserButton, useUser } from "@clerk/nextjs";
 import { shallow, useOthers } from "@liveblocks/react/suspense";
+import { AiPresenceAvatar, useAiAgentPresence } from "./ai-presence-avatar";
+import { AI_AGENT_USER_ID } from "@/lib/ai-agent";
 
 const MAX_VISIBLE_COLLABORATORS = 5;
 
@@ -57,19 +59,25 @@ export function PresenceAvatarGroup() {
   const { user } = useUser();
   const currentUserId = user?.id ?? null;
   const collaborators = useOthers(
-    (others) => others.filter((other) => other.id !== currentUserId),
+    (others) =>
+      others.filter(
+        (other) => other.id !== currentUserId && other.id !== AI_AGENT_USER_ID,
+      ),
     shallow,
   );
 
+  const aiAgent = useAiAgentPresence();
   const visibleCollaborators = collaborators.slice(0, MAX_VISIBLE_COLLABORATORS);
   const overflowCount = Math.max(0, collaborators.length - MAX_VISIBLE_COLLABORATORS);
   const hasCollaborators = collaborators.length > 0;
+  const hasAvatarGroup = Boolean(aiAgent) || hasCollaborators;
 
   return (
     <div className="flex items-center gap-2 rounded-2xl border border-(--color-border-default) bg-(--color-bg-surface) px-2 py-1.5 shadow-2xl">
-      {hasCollaborators ? (
+      {hasAvatarGroup ? (
         <>
           <div className="flex items-center">
+            <AiPresenceAvatar index={0} />
             {visibleCollaborators.map((collaborator, index) => (
               <CollaboratorAvatar
                 key={collaborator.connectionId}
@@ -77,7 +85,7 @@ export function PresenceAvatarGroup() {
                 avatar={collaborator.info.avatar}
                 color={collaborator.info.color}
                 userId={collaborator.id}
-                index={index}
+                index={index + (aiAgent ? 1 : 0)}
               />
             ))}
             {overflowCount > 0 ? (

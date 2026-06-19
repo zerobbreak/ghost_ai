@@ -86,7 +86,11 @@ export function EditorWorkspaceClient({
         </section>
       </main>
 
-      <AiSidebar isOpen={isAiSidebarOpen} onClose={() => setIsAiSidebarOpen(false)} />
+      <AiSidebar
+        isOpen={isAiSidebarOpen}
+        onClose={() => setIsAiSidebarOpen(false)}
+        projectId={projectId}
+      />
 
       <ProjectDialogs
         dialog={actions.dialog}

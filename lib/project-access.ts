@@ -67,13 +67,17 @@ export async function getCurrentIdentity(
     return { userId, primaryEmail, displayName, avatarUrl };
   }
 
-  const user = await currentUser();
-  primaryEmail =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses[0]?.emailAddress ??
-    primaryEmail;
-  displayName = user?.fullName ?? user?.firstName ?? primaryEmail ?? displayName;
-  avatarUrl = user?.imageUrl ?? avatarUrl;
+  try {
+    const user = await currentUser();
+    primaryEmail =
+      user?.primaryEmailAddress?.emailAddress ??
+      user?.emailAddresses[0]?.emailAddress ??
+      primaryEmail;
+    displayName = user?.fullName ?? user?.firstName ?? primaryEmail ?? displayName;
+    avatarUrl = user?.imageUrl ?? avatarUrl;
+  } catch {
+    // Clerk API unreachable — keep session-claim values so auth routes can still respond.
+  }
 
   return { userId, primaryEmail, displayName, avatarUrl };
 }

@@ -3,7 +3,7 @@ import { getLiveblocks, getUserColor } from "@/lib/liveblocks";
 import { getCurrentIdentity, getAccessibleProjectById } from "@/lib/project-access";
 
 export async function POST(request: NextRequest) {
-  const identity = await getCurrentIdentity({ loadProfile: false });
+  let identity = await getCurrentIdentity({ loadProfile: false });
 
   if (!identity.userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,29 +23,28 @@ export async function POST(request: NextRequest) {
   }
 
   let project = await getAccessibleProjectById(roomId, identity);
-  let authorizedIdentity = identity;
 
+  // Collaborator access is keyed by email — load profile only when claims lack it.
   if (!project && !identity.primaryEmail) {
-    authorizedIdentity = await getCurrentIdentity();
-    project = await getAccessibleProjectById(roomId, authorizedIdentity);
+    try {
+      identity = await getCurrentIdentity({ loadProfile: true });
+      project = await getAccessibleProjectById(roomId, identity);
+    } catch {
+      return Response.json(
+        { error: "Unable to verify account profile" },
+        { status: 503 },
+      );
+    }
   }
 
   if (!project) {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  authorizedIdentity = await getCurrentIdentity();
-
-  const userId = authorizedIdentity.userId;
-  if (!userId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const userId = identity.userId;
   const name =
-    authorizedIdentity.displayName ??
-    authorizedIdentity.primaryEmail ??
-    userId;
-  const avatar = authorizedIdentity.avatarUrl ?? "";
+    identity.displayName ?? identity.primaryEmail ?? userId;
+  const avatar = identity.avatarUrl ?? "";
   const color = getUserColor(userId);
 
   const lb = getLiveblocks();
@@ -56,6 +55,24 @@ export async function POST(request: NextRequest) {
 
   session.allow(roomId, session.FULL_ACCESS);
 
-  const { status, body: sessionBody } = await session.authorize();
-  return new Response(sessionBody, { status });
+  try {
+    const { status, body: sessionBody } = await session.authorize();
+
+    if (status !== 200) {
+      return Response.json(
+        { error: "Liveblocks authorization failed", detail: sessionBody },
+        { status },
+      );
+    }
+
+    return new Response(sessionBody, {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Liveblocks authorization failed";
+
+    return Response.json({ error: message }, { status: 503 });
+  }
 }

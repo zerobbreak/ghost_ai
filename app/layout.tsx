@@ -32,7 +32,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ClerkProvider
-          dynamic
           appearance={{
             theme: dark,
             variables: {

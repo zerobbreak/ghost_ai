@@ -28,6 +28,15 @@ declare global {
     ThreadMetadata: Record<string, never>;
 
     RoomInfo: Record<string, never>;
+
+    FeedMetadata: {
+      title?: string;
+    };
+
+    FeedMessageData: {
+      text: string;
+      phase: "start" | "processing" | "complete" | "error";
+    };
   }
 }
 

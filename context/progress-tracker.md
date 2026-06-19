@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 21: Canvas Autosave — Bugfix complete
+- Feature 23: Design Agent Logic — Complete
 
 ## Current Goal
 
@@ -35,6 +35,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - `19-presence-avatars-cursors` — editor canvas now shows a room-scoped participant avatar group with collaborator overflow and a separate Clerk `UserButton`; Liveblocks presence broadcasts cursor coordinates from React Flow mouse events, clears them on leave, and renders colored collaborator cursors with name badges; `Presence` now uses `cursor` plus `thinking`; `pnpm run build` passes.
 - `20-ai-sidebar-shell` — AI workspace sidebar split into `components/editor/ai-sidebar.tsx` with controlled right-side slide-over behavior, polished panel layering/spacing, AI Architect chat shell, starter prompt chips, local input handling, and static Specs preview; `pnpm run build` passes.
 - `21-canvas-autosave` — `@vercel/blob` installed; `PUT/GET /api/projects/[projectId]/canvas` routes upload canvas JSON to Vercel Blob and store the URL on the Prisma project record; `hooks/use-canvas-autosave.ts` debounces saves (2 s) and tracks saving/saved/error status; `liveblocks-canvas.tsx` loads saved state on mount when the Liveblocks room is empty, skips load if nodes/edges already exist; `control-bar.tsx` shows a save-status indicator (spinner/check/alert); `pnpm run build` passes.
+- `22-design-agent-api` — `TaskRun` Prisma model with `runId`/`projectId`/`userId` indexes; `POST /api/ai/design` triggers `design-agent` via Trigger.dev and persists run ownership; `POST /api/ai/design/token` verifies ownership and returns a run-scoped public token; `trigger/design-agent.ts` minimal echo task (no AI yet); `pnpm run build` passes.
+- `23-design-agent-logic` — `design-agent` task uses Gemini (`@ai-sdk/google`) to interpret prompts and apply canvas actions via `mutateFlow`; AI presence (`setPresence`) and shared status feed (`ai-status`) publish start/processing/complete/error updates; canvas shows AI cursor, avatar, and status panel; AI sidebar triggers generation; `pnpm run build` passes.
 
 ## In Progress
 
@@ -64,16 +66,22 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Sidebar actions are owned-only** — `onRename` / `onDelete` props are only threaded through to `ProjectItem` for projects where `owned === true`; shared projects render without action buttons.
 - **Prisma 7 driver-adapter pattern** — `lib/prisma.ts` branches on `DATABASE_URL` prefix: `prisma+postgres://` → `accelerateUrl` + `withAccelerate()`; otherwise → `PrismaPg({ connectionString })` adapter; both are mutually exclusive per Prisma 7's new constructor API.
 - **Multi-file Prisma schema** — `prisma.config.ts` sets `schema: "prisma/"` so all `*.prisma` files in the folder are merged; datasource and generator live in `schema.prisma`, models in `prisma/models/`.
-- **No `url`/`directUrl` in schema** — Prisma 7 removed these from the schema file; the connection URL lives exclusively in `prisma.config.ts` → `datasource.url`.
+- **No `url`/`directUrl` in schema** — Prisma 7 removed these from the schema file; the connection URL lives exclusively in `prisma.config.ts` → `datasource.url` (`DATABASE_URL` only; no Supabase `DIRECT_URL` split).
 - **Workspace access checks centralized in `lib/project-access.ts`** — server routes/pages resolve Clerk identity (`userId` + primary email) and evaluate owner-or-collaborator membership through one shared helper to keep authorization behavior consistent.
 - **Liveblocks Node client is lazy-cached** — `getLiveblocks()` in `lib/liveblocks.ts` defers secret-key validation to first call so `next build` does not fail when `LIVEBLOCKS_SECRET_KEY` is absent.
 - **Access-token auth over ID-token auth** — simpler to wire room-level `FULL_ACCESS` grants explicitly per-request; room is always created by the auth route before the session is issued.
 - **`useLiveblocksFlow` requires explicit generic types for `add` changes** — `useLiveblocksFlow<CanvasNode, CanvasEdge>()` must be typed explicitly for `onNodesChange` to accept `{ type: 'add', item: CanvasNode }` without TypeScript errors.
 - **Drag-to-canvas uses `application/canvas-shape` MIME type** — drag payload is JSON-serialized `{ shape, width, height }`; `screenToFlowPosition` centers the node on the drop point.
+- **Trigger.dev v4 SDK** — `@trigger.dev/sdk` 4.4.6 installed; `trigger.config.ts` at project root with `dirs: ["./trigger"]`; always import from `@trigger.dev/sdk`, never from `@trigger.dev/sdk/v3`; tasks live in `trigger/`; dev server runs via `pnpm trigger:dev` (separate from Next.js dev server).
+- **TaskRun ownership gate** — design runs are triggered from `POST /api/ai/design`, stored in `task_runs`, and public realtime tokens are only issued via `POST /api/ai/design/token` after matching `runId` + Clerk `userId`.
+- **Server-side canvas mutations** — background tasks update the shared React Flow state through `@liveblocks/react-flow/node` `mutateFlow`, not client hooks.
+- **AI collaborator identity** — the design agent uses fixed Liveblocks user id `ghost-ai` with ephemeral `setPresence` (cursor + thinking) and room feed `ai-status` for shared progress messages.
 
 ## Session Notes
 
-- Feature 21 is complete. Canvas JSON is stored in Vercel Blob at `canvas/{projectId}.json`; the blob URL is persisted on the Prisma project record in `canvasJsonPath`. Autosave fires 2 s after the last canvas change, after the initial saved-state load has completed. Load-on-mount is skipped if the Liveblocks room already has active nodes or edges to protect collaborative sessions.
+- Feature 23 is complete. The design agent calls Gemini, mutates the canvas through `mutateFlow`, publishes status to the `ai-status` feed, and shows AI presence while running.
+- Add `GOOGLE_AI_API_KEY` to `.env.local` (and Trigger.dev env) for Gemini calls; `pnpm trigger:dev` must run alongside Next.js for background tasks in development.
+- `prisma.config.ts` now uses `DATABASE_URL` only (no Supabase `DIRECT_URL`). Point `DATABASE_URL` at Prisma Postgres (`npx create-db` → `prisma+postgres://…`) or any direct Postgres URL, then run `pnpm prisma migrate deploy` for `20260610120000_add_task_runs`.
 - Canvas connection handles now preserve the selected source and target handle IDs through Liveblocks edge state, so edges can attach to top, right, bottom, or left handles.
 - The shared editor navbar now receives an explicit `home` or `workspace` context so the Clerk `UserButton` remains on editor home but is omitted from workspace project pages.
 - Canvas nodes now show larger circular connection ports on the node boundary, so top, right, bottom, and left connections terminate against their respective nodes.

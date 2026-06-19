@@ -1,0 +1,43 @@
+{
+  "configPath": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-Aj3kTc\\trigger.config.mjs",
+  "customConditions": [
+  ],
+  "prompts": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node",
+  "runtimeVersion": "22.15.0",
+  "tasks": [
+    {
+      "entryPoint": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-Aj3kTc\\trigger\\design-agent.mjs",
+      "filePath": "trigger/design-agent.ts",
+      "id": "design-agent",
+      "maxDuration": 3600,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 2,
+        "maxTimeoutInMs": 60000,
+        "minTimeoutInMs": 1000,
+        "randomize": true
+      }
+    },
+    {
+      "entryPoint": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-Aj3kTc\\trigger\\example.mjs",
+      "filePath": "trigger/example.ts",
+      "id": "hello-world",
+      "maxDuration": 3600,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000
+      }
+    }
+  ],
+  "timings": {
+    "trigger/design-agent.ts": 200.654,
+    "trigger/example.ts": 4.577499999999986
+  },
+  "workerEntryPoint": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-Aj3kTc\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs"
+}

@@ -30,9 +30,11 @@ import { CanvasActionsProvider } from "./canvas-actions-context";
 import { ControlBar } from "./control-bar";
 import { LiveCursors } from "./live-cursors";
 import { PresenceAvatarGroup } from "./presence-avatar-group";
+import { AiStatusPanel } from "./ai-status-panel";
 import { StarterTemplatesModal } from "./starter-templates-modal";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useCanvasAutosave, type SaveStatus } from "@/hooks/use-canvas-autosave";
+import { safeParseJson } from "@/lib/canvas-snapshot";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 import type { CanvasNode, CanvasEdge } from "@/types/canvas";
 import type { CanvasTemplate } from "./starter-templates";
@@ -125,12 +127,9 @@ export function LiveblocksCanvas({
         const res = await fetch(`/api/projects/${projectId}/canvas`);
         if (!res.ok) return;
         const text = await res.text();
-        let data: CanvasLoadResponse | null = null;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return;
-        }
+        const parsed = safeParseJson(text);
+        if (!parsed || typeof parsed !== "object") return;
+        const data = parsed as CanvasLoadResponse;
         if (data?.status === "invalid" || data?.status === "error") {
           setSaveStatus("error");
           return;
@@ -359,6 +358,9 @@ export function LiveblocksCanvas({
           <MiniMap />
           <Panel position="top-right" className="z-50 mr-3 mt-3">
             <PresenceAvatarGroup />
+          </Panel>
+          <Panel position="top-left" className="z-50 ml-3 mt-3">
+            <AiStatusPanel />
           </Panel>
           <Panel position="bottom-left" className="z-50 mb-2 ml-2">
             <ControlBar rfInstance={rfInstance} saveStatus={saveStatus} />

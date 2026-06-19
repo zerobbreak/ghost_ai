@@ -12,7 +12,11 @@ const AI_MID  = "rgba(100,87,249,0.18)";
 const AI_RIM  = "rgba(100,87,249,0.28)";
 
 /* ─── types ────────────────────────────────────────────── */
-interface AiSidebarProps { isOpen: boolean; onClose: () => void }
+interface AiSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  projectId: string;
+}
 interface ChatMessage { id: string; role: "user" | "assistant"; content: string }
 type Tab = "architect" | "specs";
 
@@ -23,11 +27,12 @@ const STARTER_PROMPTS = [
 ];
 
 /* ═══════════════════════════════════════════════════════ */
-export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
+export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   const [activeTab,   setActiveTab]   = useState<Tab>("architect");
   const [draft,       setDraft]       = useState("");
   const [messages,    setMessages]    = useState<ChatMessage[]>([]);
   const [inputFocused, setInputFocused] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   function resizeTextarea() {
@@ -47,22 +52,60 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
     textareaRef.current?.focus();
   }
 
-  function handleSubmit(e?: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e?: FormEvent<HTMLFormElement>) {
     e?.preventDefault();
     const trimmed = draft.trim();
-    if (!trimmed) return;
+    if (!trimmed || isSubmitting) return;
+
+    setIsSubmitting(true);
     setMessages((prev) => [
       ...prev,
       { id: crypto.randomUUID(), role: "user", content: trimmed },
-      {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content:
-          "I can help shape that architecture once AI generation is wired in. Use this workspace to draft prompts and prepare the canvas.",
-      },
     ]);
     setDraft("");
     requestAnimationFrame(resizeTextarea);
+
+    try {
+      const res = await fetch("/api/ai/design", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: trimmed,
+          roomId: projectId,
+          projectId,
+        }),
+      });
+
+      const data = (await res.json()) as { runId?: string; error?: string };
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to start design generation");
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content:
+            "Ghost AI is working on your design. Watch the canvas for live updates and status messages.",
+        },
+      ]);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to start design generation";
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: message,
+        },
+      ]);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -240,6 +283,7 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 placeholder="Describe a system to design…"
+                disabled={isSubmitting}
                 rows={3}
                 style={{
                   display: "block",
@@ -276,14 +320,14 @@ export function AiSidebar({ isOpen, onClose }: AiSidebarProps) {
                 </span>
                 <button
                   type="submit"
-                  disabled={!draft.trim()}
+                  disabled={!draft.trim() || isSubmitting}
                   style={{
                     width: "28px", height: "28px",
                     borderRadius: "8px",
                     border: "none",
-                    cursor: draft.trim() ? "pointer" : "default",
-                    background: draft.trim() ? AI : "rgba(255,255,255,0.05)",
-                    color: draft.trim() ? "#fff" : "rgba(255,255,255,0.2)",
+                    cursor: draft.trim() && !isSubmitting ? "pointer" : "default",
+                    background: draft.trim() && !isSubmitting ? AI : "rgba(255,255,255,0.05)",
+                    color: draft.trim() && !isSubmitting ? "#fff" : "rgba(255,255,255,0.2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "background 0.15s, color 0.15s",
                     flexShrink: 0,
