@@ -4,6 +4,7 @@ import {
   memo,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -13,6 +14,7 @@ import {
   getSmoothStepPath,
   type EdgeProps,
 } from "@xyflow/react";
+import { resolveEdgeLabelPosition } from "@/lib/edge-label-position";
 import type { CanvasEdge } from "@/types/canvas";
 import { useCanvasActions } from "./canvas-actions-context";
 
@@ -40,7 +42,7 @@ function CanvasEdgeComponent({
 
   const label = data?.label ?? "";
 
-  const [edgePath] = getSmoothStepPath({
+  const [edgePath, pathLabelX, pathLabelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -49,8 +51,11 @@ function CanvasEdgeComponent({
     targetPosition,
     borderRadius: 8,
   });
-  const labelX = (sourceX + targetX) / 2;
-  const labelY = (sourceY + targetY) / 2;
+
+  const { x: labelX, y: labelY } = useMemo(
+    () => resolveEdgeLabelPosition(edgePath, pathLabelX, pathLabelY),
+    [edgePath, pathLabelX, pathLabelY],
+  );
 
   const stroke = selected
     ? SELECTED_STROKE

@@ -4,19 +4,19 @@ import {
   normalizeDesignPlan,
   type DesignPlan,
 } from "@/lib/design-agent-schema";
+import { safeParseJson } from "@/lib/canvas-snapshot";
 
 function extractJsonObject(text: string): unknown {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fenced?.[1]?.trim() ?? trimmed;
 
-  const start = candidate.indexOf("{");
-  const end = candidate.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
+  const parsed = safeParseJson(candidate);
+  if (parsed === null) {
     throw new Error("Model response did not contain JSON");
   }
 
-  return JSON.parse(candidate.slice(start, end + 1));
+  return parsed;
 }
 
 export async function generateDesignPlan(options: {
@@ -32,7 +32,7 @@ export async function generateDesignPlan(options: {
       schema: llmDesignPlanSchema,
       schemaName: "DesignPlan",
       schemaDescription:
-        "Ordered canvas mutations: add/move/resize/update/delete nodes and add/delete edges.",
+        "Ordered canvas mutations: add/move/resize/update/delete nodes and add/update/delete edges.",
       system,
       prompt,
       maxRetries: 2,

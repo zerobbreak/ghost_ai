@@ -3,8 +3,10 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateDesignPlan } from "@/lib/design-agent-generate";
 import {
   applyDesignActions,
+  AI_CURSOR_HOME,
   clearAiPresence,
-  cursorForNode,
+  cursorForAction,
+  cursorForCanvasOverview,
   publishAiStatus,
   readCanvasState,
   updateAiPresence,
@@ -14,7 +16,8 @@ import {
   buildDesignUserPrompt,
 } from "@/lib/design-agent-prompt";
 import type { DesignAction } from "@/lib/design-agent-schema";
-import type { CanvasNode } from "@/types/canvas";
+import { USER_FRIENDLY_ERROR_MESSAGE } from "@/lib/user-friendly-error";
+import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 
 function getGoogleApiKey() {
   return (
@@ -35,31 +38,78 @@ function createGeminiModel() {
   return google("gemini-3.5-flash");
 }
 
-function chunkActions(actions: DesignAction[], size: number) {
-  const chunks: DesignAction[][] = [];
-  for (let i = 0; i < actions.length; i += size) {
-    chunks.push(actions.slice(i, i + size));
+function applyActionToWorkingState(
+  action: DesignAction,
+  workingNodes: CanvasNode[],
+  workingEdges: CanvasEdge[],
+) {
+  switch (action.type) {
+    case "addNode":
+      return {
+        nodes: [
+          ...workingNodes.filter((node) => node.id !== action.node.id),
+          action.node as CanvasNode,
+        ],
+        edges: workingEdges,
+      };
+    case "moveNode":
+      return {
+        nodes: workingNodes.map((node) =>
+          node.id === action.id ? { ...node, position: action.position } : node,
+        ),
+        edges: workingEdges,
+      };
+    case "resizeNode":
+      return {
+        nodes: workingNodes.map((node) =>
+          node.id === action.id
+            ? {
+                ...node,
+                style: { ...node.style, width: action.width, height: action.height },
+              }
+            : node,
+        ),
+        edges: workingEdges,
+      };
+    case "updateNodeData":
+      return {
+        nodes: workingNodes.map((node) =>
+          node.id === action.id
+            ? { ...node, data: { ...node.data, ...action.data } }
+            : node,
+        ),
+        edges: workingEdges,
+      };
+    case "deleteNode":
+      return {
+        nodes: workingNodes.filter((node) => node.id !== action.id),
+        edges: workingEdges.filter(
+          (edge) => edge.source !== action.id && edge.target !== action.id,
+        ),
+      };
+    case "addEdge":
+      return {
+        nodes: workingNodes,
+        edges: [
+          ...workingEdges.filter((edge) => edge.id !== action.edge.id),
+          action.edge as CanvasEdge,
+        ],
+      };
+    case "updateEdgeData":
+      return {
+        nodes: workingNodes,
+        edges: workingEdges.map((edge) =>
+          edge.id === action.id
+            ? { ...edge, data: { ...edge.data, ...action.data } }
+            : edge,
+        ),
+      };
+    case "deleteEdge":
+      return {
+        nodes: workingNodes,
+        edges: workingEdges.filter((edge) => edge.id !== action.id),
+      };
   }
-  return chunks;
-}
-
-function cursorForAction(action: DesignAction, nodes: CanvasNode[]) {
-  if (action.type === "addNode") {
-    return cursorForNode(action.node as CanvasNode);
-  }
-
-  const nodeId =
-    action.type === "moveNode" ||
-    action.type === "resizeNode" ||
-    action.type === "updateNodeData" ||
-    action.type === "deleteNode"
-      ? action.id
-      : null;
-
-  if (!nodeId) return null;
-
-  const node = nodes.find((n) => n.id === nodeId);
-  return node ? cursorForNode(node) : null;
 }
 
 export const designAgentTask = task({
@@ -77,7 +127,7 @@ export const designAgentTask = task({
         phase: "start",
         text: "Ghost AI is starting your design…",
       });
-      await updateAiPresence(roomId, { cursor: { x: 120, y: 120 }, thinking: true });
+      await updateAiPresence(roomId, { cursor: AI_CURSOR_HOME, thinking: true });
 
       await publishAiStatus(roomId, {
         phase: "processing",
@@ -85,6 +135,10 @@ export const designAgentTask = task({
       });
 
       const { nodes, edges } = await readCanvasState(roomId);
+      await updateAiPresence(roomId, {
+        cursor: cursorForCanvasOverview(nodes),
+        thinking: true,
+      });
 
       await publishAiStatus(roomId, {
         phase: "processing",
@@ -106,37 +160,37 @@ export const designAgentTask = task({
         text: plan.summary,
       });
 
-      const actionChunks = chunkActions(plan.actions, 4);
       let workingNodes = [...nodes];
+      let workingEdges = [...edges];
 
-      for (let index = 0; index < actionChunks.length; index++) {
-        const chunk = actionChunks[index];
+      for (let index = 0; index < plan.actions.length; index++) {
+        const action = plan.actions[index];
 
-        const cursor =
-          cursorForAction(chunk[0], workingNodes) ?? { x: 160 + index * 40, y: 160 };
-
-        await updateAiPresence(roomId, { cursor, thinking: true });
-        await applyDesignActions(roomId, chunk);
-
-        for (const action of chunk) {
-          if (action.type === "addNode") {
-            workingNodes = [
-              ...workingNodes.filter((n) => n.id !== action.node.id),
-              action.node as CanvasNode,
-            ];
-          } else if (action.type === "deleteNode") {
-            workingNodes = workingNodes.filter((n) => n.id !== action.id);
-          } else if (action.type === "moveNode") {
-            workingNodes = workingNodes.map((n) =>
-              n.id === action.id ? { ...n, position: action.position } : n,
-            );
-          }
-        }
-
-        await publishAiStatus(roomId, {
-          phase: "processing",
-          text: `Applied ${Math.min((index + 1) * chunk.length, plan.actions.length)} of ${plan.actions.length} changes…`,
+        await updateAiPresence(roomId, {
+          cursor: cursorForAction(action, workingNodes, workingEdges),
+          thinking: true,
         });
+        await applyDesignActions(roomId, [action]);
+
+        const nextState = applyActionToWorkingState(
+          action,
+          workingNodes,
+          workingEdges,
+        );
+        workingNodes = nextState.nodes;
+        workingEdges = nextState.edges;
+
+        const isProgressMilestone =
+          index === 0 ||
+          (index + 1) % 4 === 0 ||
+          index === plan.actions.length - 1;
+
+        if (isProgressMilestone) {
+          await publishAiStatus(roomId, {
+            phase: "processing",
+            text: `Applied ${index + 1} of ${plan.actions.length} changes…`,
+          });
+        }
       }
 
       await publishAiStatus(roomId, {
@@ -157,7 +211,7 @@ export const designAgentTask = task({
       try {
         await publishAiStatus(roomId, {
           phase: "error",
-          text: message,
+          text: USER_FRIENDLY_ERROR_MESSAGE,
         });
       } catch (statusError) {
         logger.error("Failed to publish error status", { statusError });

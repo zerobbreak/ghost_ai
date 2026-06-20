@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 23: Design Agent Logic — Complete
+- Feature 26: AI Chat Functional — Complete
 
 ## Current Goal
 
@@ -37,6 +37,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `21-canvas-autosave` — `@vercel/blob` installed; `PUT/GET /api/projects/[projectId]/canvas` routes upload canvas JSON to Vercel Blob and store the URL on the Prisma project record; `hooks/use-canvas-autosave.ts` debounces saves (2 s) and tracks saving/saved/error status; `liveblocks-canvas.tsx` loads saved state on mount when the Liveblocks room is empty, skips load if nodes/edges already exist; `control-bar.tsx` shows a save-status indicator (spinner/check/alert); `pnpm run build` passes.
 - `22-design-agent-api` — `TaskRun` Prisma model with `runId`/`projectId`/`userId` indexes; `POST /api/ai/design` triggers `design-agent` via Trigger.dev and persists run ownership; `POST /api/ai/design/token` verifies ownership and returns a run-scoped public token; `trigger/design-agent.ts` minimal echo task (no AI yet); `pnpm run build` passes.
 - `23-design-agent-logic` — `design-agent` task uses Gemini (`@ai-sdk/google`) to interpret prompts and apply canvas actions via `mutateFlow`; AI presence (`setPresence`) and shared status feed (`ai-status`) publish start/processing/complete/error updates; canvas shows AI cursor, avatar, and status panel; AI sidebar triggers generation; `pnpm run build` passes.
+- `24-ai-presence-state` — Shared `ai-status-feed` with Zod-validated payloads in `types/tasks.ts`; `EditorRoomProvider` hoists Liveblocks room context for canvas + AI sidebar; sidebar shows working indicator, disables chat input, and loads send button during generation; cursor badges show thinking spinners; `pnpm run build` passes.
+- `25-sidebar-chat-feed` — Room-scoped `ai-chat` Liveblocks feed with Zod-validated payloads (`sender`, `role`, `content`, `timestamp`); `use-ai-chat-feed` hook subscribes, validates, and sends messages; AI sidebar renders collaborative chat with sender/timestamp/content, send-error state, and input cleared on success; kept separate from `ai-status-feed`; `npm run build` passes.
+- `26-ai-chat-functional` — AI sidebar submit pushes user messages then calls `POST /api/ai/design` + token route; `use-ai-design-run` tracks runs via `useRealtimeRun`; completion posts assistant replies to `ai-chat`; compact green status strip above input during active runs; input/button locked while generating; errors surface in chat feed; canvas updates stay Liveblocks-driven; `pnpm run build` passes.
 
 ## In Progress
 
@@ -44,7 +47,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Next Up
 
-- Implement the next editor workspace feature unit.
+- None.
 
 
 
@@ -75,14 +78,12 @@ Update this file whenever the current phase, active feature, or implementation s
 - **Trigger.dev v4 SDK** — `@trigger.dev/sdk` 4.4.6 installed; `trigger.config.ts` at project root with `dirs: ["./trigger"]`; always import from `@trigger.dev/sdk`, never from `@trigger.dev/sdk/v3`; tasks live in `trigger/`; dev server runs via `pnpm trigger:dev` (separate from Next.js dev server).
 - **TaskRun ownership gate** — design runs are triggered from `POST /api/ai/design`, stored in `task_runs`, and public realtime tokens are only issued via `POST /api/ai/design/token` after matching `runId` + Clerk `userId`.
 - **Server-side canvas mutations** — background tasks update the shared React Flow state through `@liveblocks/react-flow/node` `mutateFlow`, not client hooks.
-- **AI collaborator identity** — the design agent uses fixed Liveblocks user id `ghost-ai` with ephemeral `setPresence` (cursor + thinking) and room feed `ai-status` for shared progress messages.
+- **AI collaborator identity** — the design agent uses fixed Liveblocks user id `ghost-ai` with ephemeral `setPresence` (cursor + thinking) and room feed `ai-status-feed` for shared progress messages.
+- **AI status feed validation** — `types/tasks.ts` defines the `ai-status-feed` payload schema (optional `text`, required `phase`); client hooks validate before display and server publish validates on write.
+- **AI chat feed validation** — `types/tasks.ts` defines the `ai-chat` payload schema (`sender`, `role`, `content`, `timestamp`); `use-ai-chat-feed` validates before render and client sends use the same schema; feed stays separate from `ai-status-feed`.
+- **Design run client tracking** — sidebar stores `runId` + public token locally and subscribes with `@trigger.dev/react-hooks` `useRealtimeRun`; token is fetched from existing `/api/ai/design/token` when not inlined on the design response; completion assistant messages are written to `ai-chat` from the submitting client only.
 
 ## Session Notes
 
-- Feature 23 is complete. The design agent calls Gemini, mutates the canvas through `mutateFlow`, publishes status to the `ai-status` feed, and shows AI presence while running.
-- Add `GOOGLE_AI_API_KEY` to `.env.local` (and Trigger.dev env) for Gemini calls; `pnpm trigger:dev` must run alongside Next.js for background tasks in development.
-- `prisma.config.ts` now uses `DATABASE_URL` only (no Supabase `DIRECT_URL`). Point `DATABASE_URL` at Prisma Postgres (`npx create-db` → `prisma+postgres://…`) or any direct Postgres URL, then run `pnpm prisma migrate deploy` for `20260610120000_add_task_runs`.
-- Canvas connection handles now preserve the selected source and target handle IDs through Liveblocks edge state, so edges can attach to top, right, bottom, or left handles.
-- The shared editor navbar now receives an explicit `home` or `workspace` context so the Clerk `UserButton` remains on editor home but is omitted from workspace project pages.
-- Canvas nodes now show larger circular connection ports on the node boundary, so top, right, bottom, and left connections terminate against their respective nodes.
-- Canvas autosave now treats loaded room state as a baseline on reload, queues overlapping saves, and recovers valid canvas snapshots from malformed or concatenated saved JSON without overwriting the current project state.
+- Feature 26 follow-up: design agent now moves ephemeral AI cursor per canvas action via `cursorForAction`; client animates cursor transitions.
+- Design agent edge labeling: `updateEdgeData` action labels existing connections; new `addEdge` actions include labels by default unless the user opts out.

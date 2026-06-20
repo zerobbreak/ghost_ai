@@ -1,8 +1,8 @@
 "use client";
 
 import { Bot, Loader2 } from "lucide-react";
-import { useFeedMessages } from "@liveblocks/react/suspense";
-import { AI_STATUS_FEED_ID } from "@/lib/ai-agent";
+import { useAiStatusFeed } from "@/hooks/use-ai-status-feed";
+import { USER_FRIENDLY_ERROR_MESSAGE } from "@/lib/user-friendly-error";
 
 function StatusIcon({ phase }: { phase: "start" | "processing" | "complete" | "error" }) {
   if (phase === "processing" || phase === "start") {
@@ -17,13 +17,14 @@ function StatusIcon({ phase }: { phase: "start" | "processing" | "complete" | "e
 }
 
 export function AiStatusPanel() {
-  const { messages } = useFeedMessages(AI_STATUS_FEED_ID);
-  const latest = messages.at(-1);
+  const { payload, displayText, isActive } = useAiStatusFeed();
 
-  if (!latest) return null;
+  if (!payload) return null;
 
-  const { text, phase } = latest.data;
-  const isActive = phase === "start" || phase === "processing";
+  const statusText =
+    payload.phase === "error"
+      ? USER_FRIENDLY_ERROR_MESSAGE
+      : displayText;
 
   return (
     <div
@@ -35,13 +36,15 @@ export function AiStatusPanel() {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-(--color-accent-ai-text)">
-          Ghost AI {isActive ? "· Working" : phase === "error" ? "· Error" : "· Done"}
+          Ghost AI {isActive ? "· Working" : payload.phase === "error" ? "· Error" : "· Done"}
         </p>
-        <p className="mt-0.5 text-xs leading-relaxed text-(--color-text-secondary)">
-          {text}
-        </p>
+        {statusText ? (
+          <p className="mt-0.5 text-xs leading-relaxed text-(--color-text-secondary)">
+            {statusText}
+          </p>
+        ) : null}
       </div>
-      <StatusIcon phase={phase} />
+      <StatusIcon phase={payload.phase} />
     </div>
   );
 }

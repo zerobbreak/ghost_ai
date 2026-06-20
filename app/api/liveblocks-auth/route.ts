@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
   }
 
   const userId = identity.userId;
+  if (!userId) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const name =
     identity.displayName ?? identity.primaryEmail ?? userId;
   const avatar = identity.avatarUrl ?? "";

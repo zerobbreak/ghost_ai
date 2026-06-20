@@ -7,9 +7,16 @@ import {
   NODE_SHAPES,
 } from "@/types/canvas";
 import type { DesignAction } from "@/lib/design-agent-schema";
+import {
+  aiChatFeedPayloadSchema,
+  aiStatusFeedPayloadSchema,
+  type AiChatFeedPayload,
+  type AiStatusFeedPayload,
+} from "@/types/tasks";
 
 export const AI_AGENT_USER_ID = "ghost-ai";
-export const AI_STATUS_FEED_ID = "ai-status";
+export const AI_STATUS_FEED_ID = "ai-status-feed";
+export const AI_CHAT_FEED_ID = "ai-chat";
 
 export const AI_AGENT_INFO = {
   name: "Ghost AI",
@@ -17,12 +24,10 @@ export const AI_AGENT_INFO = {
   color: "#6457f9",
 } as const;
 
-export type AiStatusPhase = "start" | "processing" | "complete" | "error";
+/** Flow-space home for the AI cursor — top-left margin, clear of typical diagrams. */
+export const AI_CURSOR_HOME = { x: 48, y: 56 } as const;
 
-export interface AiStatusMessage {
-  text: string;
-  phase: AiStatusPhase;
-}
+export type AiStatusMessage = AiStatusFeedPayload;
 
 const SHAPE_DEFAULTS: Record<NodeShape, { width: number; height: number }> = {
   rectangle: { width: 200, height: 80 },
@@ -134,6 +139,9 @@ export async function applyDesignActions(roomId: string, actions: DesignAction[]
           case "addEdge":
             flow.addEdge(normalizeEdge(action.edge as CanvasEdge));
             break;
+          case "updateEdgeData":
+            flow.updateEdgeData(action.id, action.data);
+            break;
           case "deleteEdge":
             flow.removeEdge(action.id);
             break;
@@ -157,20 +165,47 @@ export async function ensureAiStatusFeed(roomId: string) {
   }
 }
 
+export async function ensureAiChatFeed(roomId: string) {
+  const client = getLiveblocks();
+
+  try {
+    await client.getFeed({ roomId, feedId: AI_CHAT_FEED_ID });
+  } catch {
+    await client.createFeed({
+      roomId,
+      feedId: AI_CHAT_FEED_ID,
+      metadata: { title: "AI Chat" },
+    });
+  }
+}
+
+export async function publishAiChatMessage(
+  roomId: string,
+  message: AiChatFeedPayload,
+) {
+  const parsed = aiChatFeedPayloadSchema.parse(message);
+  const client = getLiveblocks();
+  await ensureAiChatFeed(roomId);
+
+  await client.createFeedMessage({
+    roomId,
+    feedId: AI_CHAT_FEED_ID,
+    data: parsed,
+  });
+}
+
 export async function publishAiStatus(
   roomId: string,
   message: AiStatusMessage,
 ) {
+  const parsed = aiStatusFeedPayloadSchema.parse(message);
   const client = getLiveblocks();
   await ensureAiStatusFeed(roomId);
 
   await client.createFeedMessage({
     roomId,
     feedId: AI_STATUS_FEED_ID,
-    data: {
-      text: message.text,
-      phase: message.phase,
-    },
+    data: parsed,
   });
 }
 
@@ -200,14 +235,100 @@ export async function clearAiPresence(roomId: string) {
   );
 }
 
-export function cursorForNode(node: CanvasNode) {
+export function cursorForNode(node: Pick<CanvasNode, "position" | "style">) {
   const width =
     typeof node.style?.width === "number" ? node.style.width : 140;
-  const height =
-    typeof node.style?.height === "number" ? node.style.height : 50;
+
+  // Hover above the node center so the badge tracks edits without covering labels.
+  return {
+    x: node.position.x + width * 0.35,
+    y: node.position.y - 12,
+  };
+}
+
+export function cursorForCanvasOverview(nodes: CanvasNode[]) {
+  if (nodes.length === 0) return AI_CURSOR_HOME;
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const node of nodes) {
+    const width =
+      typeof node.style?.width === "number" ? node.style.width : 140;
+    const height =
+      typeof node.style?.height === "number" ? node.style.height : 80;
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+    maxX = Math.max(maxX, node.position.x + width);
+    maxY = Math.max(maxY, node.position.y + height);
+  }
 
   return {
-    x: node.position.x + width / 2,
-    y: node.position.y + height / 2,
+    x: (minX + maxX) / 2,
+    y: minY - 24,
   };
+}
+
+export function cursorForAction(
+  action: DesignAction,
+  nodes: CanvasNode[],
+  edges: CanvasEdge[],
+) {
+  switch (action.type) {
+    case "addNode":
+      return cursorForNode(action.node);
+    case "moveNode": {
+      const node = nodes.find((entry) => entry.id === action.id);
+      return cursorForNode({
+        position: action.position,
+        style: node?.style,
+      });
+    }
+    case "resizeNode":
+    case "updateNodeData":
+    case "deleteNode": {
+      const node = nodes.find((entry) => entry.id === action.id);
+      return node ? cursorForNode(node) : AI_CURSOR_HOME;
+    }
+    case "addEdge":
+    case "updateEdgeData": {
+      const edge =
+        action.type === "addEdge"
+          ? action.edge
+          : edges.find((entry) => entry.id === action.id);
+      if (!edge) return AI_CURSOR_HOME;
+
+      const source = nodes.find((node) => node.id === edge.source);
+      const target = nodes.find((node) => node.id === edge.target);
+      if (source && target) {
+        const sourceCursor = cursorForNode(source);
+        const targetCursor = cursorForNode(target);
+        return {
+          x: (sourceCursor.x + targetCursor.x) / 2,
+          y: (sourceCursor.y + targetCursor.y) / 2,
+        };
+      }
+      if (source) return cursorForNode(source);
+      if (target) return cursorForNode(target);
+      return AI_CURSOR_HOME;
+    }
+    case "deleteEdge": {
+      const edge = edges.find((entry) => entry.id === action.id);
+      if (!edge) return AI_CURSOR_HOME;
+      const source = nodes.find((node) => node.id === edge.source);
+      const target = nodes.find((node) => node.id === edge.target);
+      if (source && target) {
+        const sourceCursor = cursorForNode(source);
+        const targetCursor = cursorForNode(target);
+        return {
+          x: (sourceCursor.x + targetCursor.x) / 2,
+          y: (sourceCursor.y + targetCursor.y) / 2,
+        };
+      }
+      if (source) return cursorForNode(source);
+      return AI_CURSOR_HOME;
+    }
+  }
 }

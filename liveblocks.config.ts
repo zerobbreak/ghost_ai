@@ -33,10 +33,17 @@ declare global {
       title?: string;
     };
 
-    FeedMessageData: {
-      text: string;
-      phase: "start" | "processing" | "complete" | "error";
-    };
+    FeedMessageData:
+      | {
+          text?: string;
+          phase: "start" | "processing" | "complete" | "error";
+        }
+      | {
+          sender: string;
+          role: "user" | "assistant" | "system";
+          content: string;
+          timestamp: number;
+        };
   }
 }
 

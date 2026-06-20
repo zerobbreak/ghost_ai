@@ -8,6 +8,7 @@ import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { CanvasWrapper } from "@/components/editor/canvas-wrapper";
+import { EditorRoomProvider } from "@/components/editor/editor-room-provider";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import type { SidebarProject } from "@/lib/projects";
 
@@ -76,21 +77,23 @@ export function EditorWorkspaceClient({
         onDeleteProject={actions.openDelete}
       />
 
-      <main className="absolute inset-0 top-12 flex overflow-hidden">
-        <section className="flex flex-1 overflow-hidden">
-          <CanvasWrapper
-            roomId={projectId}
-            isTemplatesOpen={isTemplatesOpen}
-            onTemplatesOpenChange={setIsTemplatesOpen}
-          />
-        </section>
-      </main>
+      <EditorRoomProvider roomId={projectId}>
+        <main className="absolute inset-0 top-12 flex overflow-hidden">
+          <section className="flex flex-1 overflow-hidden">
+            <CanvasWrapper
+              roomId={projectId}
+              isTemplatesOpen={isTemplatesOpen}
+              onTemplatesOpenChange={setIsTemplatesOpen}
+            />
+          </section>
+        </main>
 
-      <AiSidebar
-        isOpen={isAiSidebarOpen}
-        onClose={() => setIsAiSidebarOpen(false)}
-        projectId={projectId}
-      />
+        <AiSidebar
+          isOpen={isAiSidebarOpen}
+          onClose={() => setIsAiSidebarOpen(false)}
+          projectId={projectId}
+        />
+      </EditorRoomProvider>
 
       <ProjectDialogs
         dialog={actions.dialog}

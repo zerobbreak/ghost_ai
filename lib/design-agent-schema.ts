@@ -26,6 +26,7 @@ export type DesignAction =
   | { type: "updateNodeData"; id: string; data: Partial<NodeDataInput> }
   | { type: "deleteNode"; id: string }
   | { type: "addEdge"; edge: CanvasEdgeInput }
+  | { type: "updateEdgeData"; id: string; data: { label?: string } }
   | { type: "deleteEdge"; id: string };
 
 export interface NodeDataInput {
@@ -97,6 +98,7 @@ function normalizeActionType(value: unknown): DesignAction["type"] | null {
     "updateNodeData",
     "deleteNode",
     "addEdge",
+    "updateEdgeData",
     "deleteEdge",
   ];
   if (validTypes.includes(direct as DesignAction["type"])) {
@@ -111,6 +113,9 @@ function normalizeActionType(value: unknown): DesignAction["type"] | null {
     updatenodedata: "updateNodeData",
     deletenode: "deleteNode",
     addedge: "addEdge",
+    updateedgedata: "updateEdgeData",
+    labelEdge: "updateEdgeData",
+    labeledge: "updateEdgeData",
     deleteedge: "deleteEdge",
   };
 
@@ -253,6 +258,13 @@ function normalizeLooseAction(
       if (!edge) return null;
       const normalized = normalizeEdgeInput(edge);
       return normalized ? { type, edge: normalized } : null;
+    }
+    case "updateEdgeData": {
+      const id = asString(action.id);
+      const data = asRecord(action.data);
+      const label = asString(data?.label);
+      if (!id || !label) return null;
+      return { type, id, data: { label } };
     }
     case "deleteEdge": {
       const id = asString(action.id);

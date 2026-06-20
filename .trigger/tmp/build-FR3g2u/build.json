@@ -1,0 +1,130 @@
+{
+  "build": {
+  },
+  "cliPackageVersion": "4.4.6",
+  "config": {
+    "dirs": [
+      "./trigger"
+    ],
+    "project": "proj_cppfgmzlpdminodjlkhb"
+  },
+  "configPath": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u\\trigger.config.mjs",
+  "contentHash": "e1c8d175d1ec04b50958ce99013a312c",
+  "customConditions": [
+  ],
+  "deploy": {
+    "env": {
+    }
+  },
+  "environment": "dev",
+  "externals": [
+    {
+      "name": "import-in-the-middle",
+      "version": "1.15.0"
+    },
+    {
+      "name": "utf-8-validate",
+      "version": "6.0.6"
+    },
+    {
+      "name": "bufferutil",
+      "version": "4.1.0"
+    }
+  ],
+  "files": [
+    {
+      "entry": "trigger/design-agent.ts",
+      "out": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u\\trigger\\design-agent.mjs"
+    },
+    {
+      "entry": "trigger/example.ts",
+      "out": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u\\trigger\\example.mjs"
+    }
+  ],
+  "indexWorkerEntryPoint": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs",
+  "otelImportHook": {
+    "include": [
+    ]
+  },
+  "outputHashes": {
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-E5ZKTJ7A.mjs": "ZxwVUtJBNec",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-E5ZKTJ7A.mjs.map": "HSkDheo/ZJo",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-EGZK6IS6.mjs": "/4zKnRwkCEU",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-EGZK6IS6.mjs.map": "vohpOufqkok",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-LTWSYBZG.mjs": "0EegT0fcOeM",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-LTWSYBZG.mjs.map": "WL4p5O8RL6Y",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-P5A2MOBO.mjs": "Llslz699mKY",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-P5A2MOBO.mjs.map": "26+2307KC2c",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-PS7SGFYN.mjs": "GUKht34EZ80",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-PS7SGFYN.mjs.map": "e4Gsc/dMn1w",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-S5CDDQOF.mjs": "JLfvKxEuucw",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-S5CDDQOF.mjs.map": "qxrvvpkgpgQ",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-SUEB6BZT.mjs": "111xchYdPYM",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-SUEB6BZT.mjs.map": "Le420tkTDiU",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-SWHIG6NR.mjs": "Y27+AojEnXA",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-SWHIG6NR.mjs.map": "pwtlqW5LG6A",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-UDT47YS7.mjs": "DVbTCOodtkQ",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-UDT47YS7.mjs.map": "pdQEAJDMFy4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-URGQV7AS.mjs": "XT8gx6x0htg",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\chunk-URGQV7AS.mjs.map": "TGoF6AZHQp8",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\crypto.node-QPKKLOQ7.mjs": "a01d/rvVvO4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\crypto.node-QPKKLOQ7.mjs.map": "0b4tlwmkM3g",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\esm-3E5AGRLI.mjs": "juCShyCNunY",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\esm-3E5AGRLI.mjs.map": "uuvelps5tsQ",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-bsd-Z7NZMTCT.mjs": "sq6JXo5AU+U",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-bsd-Z7NZMTCT.mjs.map": "AzsmIsVyB8c",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-darwin-6BDSBZ4C.mjs": "cAZTPnRUcmY",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-darwin-6BDSBZ4C.mjs.map": "fFc9VJMeef4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-linux-7NTLNANM.mjs": "X/f1wUkyOpg",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-linux-7NTLNANM.mjs.map": "tt+D3xbuDm4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-unsupported-F3CRP4AG.mjs": "2D2lvcBQ0Sc",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-unsupported-F3CRP4AG.mjs.map": "hGP3jLGjjE4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-win-CQDGSGXP.mjs": "rQzFwa3y7Rk",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\getMachineId-win-CQDGSGXP.mjs.map": "ZLRw7kr+2Mo",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\lib-KOCR7LHO.mjs": "vgASti+xkPw",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\lib-KOCR7LHO.mjs.map": "WN0QQizCgZI",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs": "OIaa6h4Yvt4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-index-worker.mjs.map": "fQjZJsOTG7I",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs": "glqiasuVZXo",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs.map": "bRJqqLeO/CY",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\s2s-4RFPJATL.mjs": "EUBYG9n3eRI",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\s2s-4RFPJATL.mjs.map": "ZKspZLueSBY",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\token-4P44PZ4O.mjs": "zcXy0UXR57U",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\token-4P44PZ4O.mjs.map": "2c3c7MMQ96o",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\token-util-JGROJ575.mjs": "2BLp+5ZHGLc",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\token-util-JGROJ575.mjs.map": "0b4tlwmkM3g",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger.config.mjs": "ijx6u+w2+X4",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger.config.mjs.map": "oytygRoLJvc",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger\\design-agent.mjs": "bNzcsaEJ1W8",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger\\design-agent.mjs.map": "aIQKPpfUxVs",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger\\example.mjs": "XvHcvvMpnAQ",
+    "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-8Vx2T4\\trigger\\example.mjs.map": "Y7+p18i5n6Q"
+  },
+  "outputPath": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u",
+  "packageVersion": "4.4.6",
+  "runWorkerEntryPoint": "C:\\Users\\uthac\\OneDrive\\Documents\\programing\\MERN\\ghost-ai\\.trigger\\tmp\\build-FR3g2u\\node_modules\\.pnpm\\trigger.dev@4.4.6_bufferuti_bea85c66064d2b6edfb561e0a5240339\\node_modules\\trigger.dev\\dist\\esm\\entryPoints\\dev-run-worker.mjs",
+  "runtime": "node",
+  "sources": {
+    "package.json": {
+      "contentHash": "495fb07917f86b9790a6fccaa11a7ba6",
+      "contents": "eJyNVMuS2yAQvPsrVL5mhXno5T3tIdf8gqsQjGRiLFSAtd5s7b+nhLAlP1KbG3Q3zEzPwOcqSdYdP8L6NVm3e+N8ytX6ZUQHsE6ZbiQwIghPaG/VwP0o9/YEAXLCqt679WvyuUqSJFlLGMZTHZx9Mq5fJrg+KS2vxLSLlPPc+is17SKlVRcYcGEVUW9V24J9jaHidhltVvTafNyKArJKkq+Qv4QeOgmdULAo4o2r1MnDpjWm1cGeHUMYVfgS4K3mDtKT2ljgIqS4IyhHMy802MNmrOi3C3SJMkTv6JOKJ0m2OKrVALU24uA2QiuYHNgxRLaIPRN1RsI3kjnLbzRpo837fwlj7ney3ip35Bsuee/Bpn0ba68W9UXNoranPJw9dOMQplwI0GCnyZs6Qa7q2FgkYYiZ7Y05BM8zlKHiqdDJw6NgACtAb2pt6hCHomVXzh+jNct+U0Tw3FI++VGMyW2rCyo0dy4duFW8E5Dyk98bq3wYyR1G5VyI0O4cw5IZ1SehJKTLKSPlnNU4XyNMCkTnSqLrFaJkll6vIFtEUXYDp9IcHym351KEL2CXoWpusudKv6tOpkew7aUlxRzJv6e8U0fuIRXOxawXVv4xMl6aIbZ8icPP54/xElA4t+mN85dbs7m3Hz0sHgLFd8zsCEb33MLb7TPqYs6ClsZDN0zgzbuO/9RIbG+xVJiuUW36j46FkX98C4vKbyteDPPDIIfcw7cczuSzxT0XB97CL97xFuzI9l1/fCMEEcR+uD3PCUWiylleNkBKwQmVkjIpS1ySitKiKGQjS2CiLosGKMmAsRLXOXDa1CxrKKeMkCrP8bYuGJSkbJiQmIuaVVKyppIVrYXMoSIlzTDmUJRVXWLgWVODxNW2kOvV119cv8BW"
+    },
+    "trigger.config.ts": {
+      "contentHash": "370a672ad1fb79e58c24208b10180989",
+      "contents": "eJxlkFFLw0AMx9/vU8R7UihddeDD7UXZ6qgoStnbkFF7aTnt3ZVcWgaj313adYL4koRf8s8/xNjWE8MJNFbG4dq7ytQwQEXegnxgMnWNFGvsF0F/y5UQeJwUGquia/iP7vokAFryX1iyGosSQ4jR9fEuz7bbND+852/P6Xp3yNOnq0gAUOfYWFQgndcoR2SL46ajgo13Cpb3STLCxtcv2GOjQDa+nuYImQwGBaMpALris0GduQ32Cpg6jCY+33kZm/Y/MqNtOShYRhdq3M5Y9B1n7jUouE3OxrPiX++3WRUle1JwdwbDmKagDQUFexkv5ifKj0gMNyvxA51Bb64="
+    },
+    "trigger/design-agent.ts": {
+      "contentHash": "8a5317c6347ccb37155517b91084de18",
+      "contents": "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"
+    },
+    "trigger/example.ts": {
+      "contentHash": "7c47af635ea37c8a999853d2b4307108",
+      "contents": "eJx9jsFqwzAQRO/6iqlODqjuXSGlx35AIWdhbVRjWQq7cpNg/O9Bwoeecp3hvZlxvmYuWFGcTAYxh0CMDRfOM/RX4bEGvae/D/GTPipF90YMOUnBL8WYz5mj/3Ey4dQ03aqA0VvoVr/faq+NAnhJFk4eaUB3dY+YnbdYMZOIC2QhhccUsB1w+kS1YH/Uxxw6/V11Bm3vTZv/5G7r9wDb4dhwprJwwgpZhoFELAovZF6AlduMqoInzc9epA=="
+    },
+    "tsconfig.json": {
+      "contentHash": "02fc19ad21338c2ab820a70136310db4",
+      "contents": "eJxtUU1Lw0AQvedXLHMMbaJehJ4E6cFiEfRYimyyQ7t2v9id1EjJf5fdJNVET8O892b2vdlLxhjUVjup0L84ktYEWLFLxhhjQNwfkGDFYP12d3N7D4seV7KCFduBsBoWLJZCEnpeKYw9BoMtwX5Qc6Xs5yauJd/gAIaTdM+yejxifZox5GVNU8zYtZYzDMPWikbhkyH01k1JnajofDAzwV8xWNXEsFFRNUYo9KPER/KMm2DNdtzya7MMVnFC0XOzVB+hjRs98pqWsRmHTO1RoyGupgNONQeZTr5LABtO36fmOkVIAQa4S3U8reN0/PkvxuChzNPPFGUO+2wc6KI8mlCNwOtbae8SzbkQBYXRap6X+d/2mqSIQyV9OQzlTNpTAs//06nVFGKS5B+wvRoCYwW+6+Gm+6zLvgEbXbUJ"
+    }
+  },
+  "target": "dev"
+}

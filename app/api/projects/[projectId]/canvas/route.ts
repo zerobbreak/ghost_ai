@@ -6,6 +6,7 @@ import { getCurrentIdentity, hasProjectAccess } from "@/lib/project-access";
 import {
   isSavedCanvas,
   parseSavedCanvasText,
+  safeParseJson,
   type CanvasParseResult,
   type SavedCanvas,
 } from "@/lib/canvas-snapshot";
@@ -35,12 +36,12 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
   let body: unknown;
   try {
     const text = await request.text();
-    body = JSON.parse(text);
+    body = safeParseJson(text);
   } catch {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  if (!isSavedCanvasPayload(body)) {
+  if (!body || !isSavedCanvasPayload(body)) {
     return Response.json({ error: "Invalid canvas payload" }, { status: 400 });
   }
 

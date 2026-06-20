@@ -31,7 +31,8 @@ Each action is a flat object with a "type" field plus only the fields needed for
 - resizeNode: { "type": "resizeNode", "id", "width", "height" }
 - updateNodeData: { "type": "updateNodeData", "id", "data": { "label" } }
 - deleteNode: { "type": "deleteNode", "id" }
-- addEdge: { "type": "addEdge", "edge": { "id", "source", "target" } }
+- addEdge: { "type": "addEdge", "edge": { "id", "source", "target", "data": { "label" } } }
+- updateEdgeData: { "type": "updateEdgeData", "id", "data": { "label" } }
 - deleteEdge: { "type": "deleteEdge", "id" }
 
 Example response:
@@ -56,7 +57,12 @@ Example response:
     },
     {
       "type": "addEdge",
-      "edge": { "id": "edge-gw-auth", "source": "api-gateway", "target": "auth-service" }
+      "edge": {
+        "id": "edge-gw-auth",
+        "source": "api-gateway",
+        "target": "auth-service",
+        "data": { "label": "authenticate" }
+      }
     }
   ]
 }
@@ -73,6 +79,11 @@ ${colors}
 Edge rules:
 - type must be "canvasEdge" when provided
 - use unique edge ids like "edge-auth-gateway"
+- edge labels describe the relationship or protocol (e.g. "HTTPS", "publish", "read")
+- edge labels should be short (1-3 words)
+- when adding new edges, include data.label unless the user explicitly asked for unlabeled lines
+- when the user asks to label lines, connections, arrows, or edges, use updateEdgeData on EXISTING edges by id — do NOT create new nodes or edges just to add labels
+- if the user asks to label specific connections, match them to existing edge ids from the canvas summary
 
 Layout rules:
 - leave at least 120px horizontal and 80px vertical spacing between nodes
@@ -103,7 +114,10 @@ export function buildDesignUserPrompt(
     .join("\n");
 
   const edgeList = edges
-    .map((e) => `- ${e.id}: ${e.source} -> ${e.target}`)
+    .map((e) => {
+      const label = e.data?.label ? ` label="${e.data.label}"` : "";
+      return `- ${e.id}: ${e.source} -> ${e.target}${label}`;
+    })
     .join("\n");
 
   return `${canvasSummary}

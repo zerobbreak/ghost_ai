@@ -1,8 +1,13 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useRef, useState } from "react";
-import { ArrowUp, Bot, Download, FileText, Sparkles, X } from "lucide-react";
+import { FormEvent, KeyboardEvent, useCallback, useRef, useState } from "react";
+import { ArrowUp, Bot, Download, FileText, Loader2, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAiChatFeed } from "@/hooks/use-ai-chat-feed";
+import { useAiDesignRun } from "@/hooks/use-ai-design-run";
+import { useAiStatusFeed } from "@/hooks/use-ai-status-feed";
+import { toUserFriendlyError } from "@/lib/user-friendly-error";
+import type { AiChatFeedPayload } from "@/types/tasks";
 
 /* ─── design constants ─────────────────────────────────── */
 const AI      = "#6457f9";
@@ -10,6 +15,9 @@ const AI_TEXT = "#8b82ff";
 const AI_DIM  = "rgba(100,87,249,0.08)";
 const AI_MID  = "rgba(100,87,249,0.18)";
 const AI_RIM  = "rgba(100,87,249,0.28)";
+const CHAT_USER_GREEN = "#62C073";
+const CHAT_USER_GREEN_DIM = "rgba(98, 192, 115, 0.16)";
+const CHAT_USER_GREEN_RIM = "rgba(98, 192, 115, 0.32)";
 
 /* ─── types ────────────────────────────────────────────── */
 interface AiSidebarProps {
@@ -17,7 +25,6 @@ interface AiSidebarProps {
   onClose: () => void;
   projectId: string;
 }
-interface ChatMessage { id: string; role: "user" | "assistant"; content: string }
 type Tab = "architect" | "specs";
 
 const STARTER_PROMPTS = [
@@ -30,9 +37,48 @@ const STARTER_PROMPTS = [
 export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   const [activeTab,   setActiveTab]   = useState<Tab>("architect");
   const [draft,       setDraft]       = useState("");
-  const [messages,    setMessages]    = useState<ChatMessage[]>([]);
   const [inputFocused, setInputFocused] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { displayText, isActive: isAiGenerating, phase: aiStatusPhase } =
+    useAiStatusFeed();
+  const {
+    messages,
+    sendMessage,
+    sendAssistantMessage,
+    isSending,
+    sendError,
+    clearSendError,
+  } = useAiChatFeed();
+
+  const handleRunComplete = useCallback(
+    async (message: string) => {
+      await sendAssistantMessage(message);
+    },
+    [sendAssistantMessage],
+  );
+
+  const handleRunError = useCallback(
+    async (message: string) => {
+      await sendAssistantMessage(message);
+    },
+    [sendAssistantMessage],
+  );
+
+  const {
+    startDesignRun,
+    isSubmitting,
+    submitError,
+    clearSubmitError,
+  } = useAiDesignRun({
+    projectId,
+    aiStatusPhase,
+    aiStatusText: displayText,
+    onRunComplete: handleRunComplete,
+    onRunError: handleRunError,
+  });
+
+  const isInputLocked = isSending || isSubmitting || isAiGenerating;
+  const showStatusStrip = isAiGenerating || isSubmitting;
+  const chatError = sendError ?? submitError;
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   function resizeTextarea() {
@@ -55,56 +101,22 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   async function handleSubmit(e?: FormEvent<HTMLFormElement>) {
     e?.preventDefault();
     const trimmed = draft.trim();
-    if (!trimmed || isSubmitting) return;
+    if (!trimmed || isInputLocked) return;
 
-    setIsSubmitting(true);
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", content: trimmed },
-    ]);
-    setDraft("");
-    requestAnimationFrame(resizeTextarea);
+    clearSendError();
+    clearSubmitError();
 
     try {
-      const res = await fetch("/api/ai/design", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: trimmed,
-          roomId: projectId,
-          projectId,
-        }),
-      });
-
-      const data = (await res.json()) as { runId?: string; error?: string };
-
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to start design generation");
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content:
-            "Ghost AI is working on your design. Watch the canvas for live updates and status messages.",
-        },
-      ]);
+      await sendMessage(trimmed);
+      setDraft("");
+      requestAnimationFrame(resizeTextarea);
+      await startDesignRun(trimmed);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to start design generation";
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: message,
-        },
-      ]);
-    } finally {
-      setIsSubmitting(false);
+      try {
+        await sendAssistantMessage(toUserFriendlyError(error));
+      } catch {
+        // sendError is set inside the hook when publishing fails.
+      }
     }
   }
 
@@ -177,10 +189,10 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
             <p style={{
               fontSize: "9px", margin: 0, marginTop: "2px",
               letterSpacing: "0.1em", textTransform: "uppercase",
-              color: "rgba(255,255,255,0.25)",
+              color: isAiGenerating ? AI_TEXT : "rgba(255,255,255,0.25)",
               fontFamily: "var(--font-geist-mono), monospace",
             }}>
-              Ghost AI · Online
+              {isAiGenerating ? "Ghost AI · Working" : "Ghost AI · Online"}
             </p>
           </div>
         </div>
@@ -249,7 +261,9 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
               ? <ArchitectEmptyState onPromptSelect={handlePromptSelect} />
               : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "16px" }}>
-                  {messages.map((m) => <ChatBubble key={m.id} message={m} />)}
+                  {messages.map((m) => (
+                    <ChatBubble key={m.id} message={m.payload} />
+                  ))}
                 </div>
               )
             }
@@ -266,6 +280,22 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
               background: "#0a0a0d",
             }}
           >
+            {showStatusStrip ? (
+              <AiRunStatusStrip text={displayText} />
+            ) : null}
+            {chatError ? (
+              <p
+                role="alert"
+                style={{
+                  margin: "0 0 8px",
+                  fontSize: "11px",
+                  lineHeight: 1.45,
+                  color: "#f87171",
+                }}
+              >
+                {chatError}
+              </p>
+            ) : null}
             <div style={{
               borderRadius: "12px",
               background: "#111116",
@@ -282,8 +312,8 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
                 onKeyDown={handleKeyDown}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
-                placeholder="Describe a system to design…"
-                disabled={isSubmitting}
+                placeholder="Message the room…"
+                disabled={isInputLocked}
                 rows={3}
                 style={{
                   display: "block",
@@ -320,20 +350,26 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
                 </span>
                 <button
                   type="submit"
-                  disabled={!draft.trim() || isSubmitting}
+                  disabled={!draft.trim() || isInputLocked}
+                  aria-busy={isInputLocked}
                   style={{
                     width: "28px", height: "28px",
                     borderRadius: "8px",
                     border: "none",
-                    cursor: draft.trim() && !isSubmitting ? "pointer" : "default",
-                    background: draft.trim() && !isSubmitting ? AI : "rgba(255,255,255,0.05)",
-                    color: draft.trim() && !isSubmitting ? "#fff" : "rgba(255,255,255,0.2)",
+                    cursor: draft.trim() && !isInputLocked ? "pointer" : "default",
+                    background: draft.trim() && !isInputLocked ? CHAT_USER_GREEN : "rgba(255,255,255,0.05)",
+                    color: draft.trim() && !isInputLocked ? "#08140b" : "rgba(255,255,255,0.2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "background 0.15s, color 0.15s",
                     flexShrink: 0,
+                    opacity: draft.trim() && !isInputLocked ? 1 : 0.55,
                   }}
                 >
-                  <ArrowUp className="h-3.5 w-3.5" />
+                  {isInputLocked ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -476,6 +512,51 @@ export function AiSidebar({ isOpen, onClose, projectId }: AiSidebarProps) {
   );
 }
 
+/* ─── compact run status strip (above input) ────────────── */
+function AiRunStatusStrip({ text }: { text: string | null }) {
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "8px",
+        padding: "7px 10px",
+        borderRadius: "8px",
+        border: `1px solid ${CHAT_USER_GREEN_RIM}`,
+        background: CHAT_USER_GREEN_DIM,
+      }}
+    >
+      <span
+        className="animate-pulse"
+        style={{
+          width: "6px",
+          height: "6px",
+          flexShrink: 0,
+          borderRadius: "50%",
+          background: CHAT_USER_GREEN,
+        }}
+      />
+      <Loader2
+        className="h-3 w-3 animate-spin"
+        style={{ color: CHAT_USER_GREEN, flexShrink: 0 }}
+      />
+      <p style={{
+        margin: 0,
+        fontSize: "11px",
+        lineHeight: 1.45,
+        color: "rgba(255,255,255,0.72)",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}>
+        {text ?? "Ghost AI is working…"}
+      </p>
+    </div>
+  );
+}
+
 /* ─── Architect empty state ─────────────────────────────── */
 function ArchitectEmptyState({ onPromptSelect }: { onPromptSelect: (p: string) => void }) {
   return (
@@ -536,7 +617,7 @@ function ArchitectEmptyState({ onPromptSelect }: { onPromptSelect: (p: string) =
           color: "rgba(255,255,255,0.35)",
           maxWidth: "220px",
         }}>
-          Describe a system and Ghost AI will map it onto the canvas.
+          Describe a system and chat with collaborators in this room.
         </p>
       </div>
 
@@ -588,43 +669,87 @@ function ArchitectEmptyState({ onPromptSelect }: { onPromptSelect: (p: string) =
 }
 
 /* ─── chat bubble ────────────────────────────────────────── */
-function ChatBubble({ message }: { message: ChatMessage }) {
+function formatChatTimestamp(timestamp: number) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
+}
+
+function ChatBubble({ message }: { message: AiChatFeedPayload }) {
   const isUser = message.role === "user";
+  const isAssistant = message.role === "assistant";
+
   return (
-    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", gap: "8px" }}>
-      {!isUser && (
-        <div style={{
-          width: "20px", height: "20px",
-          flexShrink: 0,
-          marginTop: "3px",
-          borderRadius: "6px",
-          background: AI_DIM,
-          border: `1px solid ${AI_RIM}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Bot className="h-2.5 w-2.5" style={{ color: AI_TEXT }} />
-        </div>
-      )}
+    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
       <div style={{
-        maxWidth: "82%",
-        padding: "9px 13px",
-        fontSize: "13px",
-        lineHeight: "1.55",
-        overflowWrap: "break-word",
-        wordBreak: "break-word",
-        ...(isUser ? {
-          borderRadius: "14px 14px 4px 14px",
-          background: AI_MID,
-          border: `1.5px solid ${AI_RIM}`,
-          color: "#e8e8f0",
-        } : {
-          borderRadius: "4px 14px 14px 14px",
-          background: "#111116",
-          border: "1px solid rgba(255,255,255,0.07)",
-          color: "rgba(255,255,255,0.55)",
-        }),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+        paddingInline: isUser ? "4px" : "28px",
       }}>
-        {message.content}
+        <span style={{
+          fontSize: "10px",
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          color: isAssistant ? AI_TEXT : "rgba(255,255,255,0.45)",
+          fontFamily: "var(--font-geist-mono), monospace",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}>
+          {message.sender}
+        </span>
+        <time
+          dateTime={new Date(message.timestamp).toISOString()}
+          style={{
+            fontSize: "9px",
+            letterSpacing: "0.04em",
+            color: "rgba(255,255,255,0.22)",
+            fontFamily: "var(--font-geist-mono), monospace",
+            flexShrink: 0,
+          }}
+        >
+          {formatChatTimestamp(message.timestamp)}
+        </time>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", gap: "8px" }}>
+        {isAssistant && (
+          <div style={{
+            width: "20px", height: "20px",
+            flexShrink: 0,
+            marginTop: "3px",
+            borderRadius: "6px",
+            background: AI_DIM,
+            border: `1px solid ${AI_RIM}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Bot className="h-2.5 w-2.5" style={{ color: AI_TEXT }} />
+          </div>
+        )}
+        <div style={{
+          maxWidth: "82%",
+          padding: "9px 13px",
+          fontSize: "13px",
+          lineHeight: "1.55",
+          overflowWrap: "break-word",
+          wordBreak: "break-word",
+          ...(isUser ? {
+            borderRadius: "14px 14px 4px 14px",
+            background: CHAT_USER_GREEN,
+            border: `1px solid ${CHAT_USER_GREEN_RIM}`,
+            color: "#08140b",
+          } : {
+            borderRadius: "4px 14px 14px 14px",
+            background: "#111116",
+            border: "1px solid rgba(255,255,255,0.07)",
+            color: "rgba(255,255,255,0.55)",
+          }),
+        }}>
+          {message.content}
+        </div>
       </div>
     </div>
   );
