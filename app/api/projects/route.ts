@@ -12,6 +12,7 @@ export async function GET() {
   const projects = await prisma.project.findMany({
     where: { ownerId: userId },
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   return Response.json({ projects });
@@ -40,6 +41,10 @@ export async function POST(request: NextRequest) {
     data: {
       ownerId: userId,
       name,
+    },
+    select: {
+      id: true,
+      name: true,
     },
   });
 

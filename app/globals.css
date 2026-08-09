@@ -72,3 +72,35 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* ── React Flow: circular connection handles ─────────────────────────────── */
+.react-flow__handle.conn-handle {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 2px solid #00c8d4 !important;
+  background: #080809 !important;
+  opacity: 0;
+  /* Invisible by default → don't intercept drag/resize events on the node */
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Reveal + re-enable pointer events only while hovering the node */
+.react-flow__node:hover .react-flow__handle.conn-handle {
+  opacity: 0.75;
+  pointer-events: all;
+}
+
+/* Keep visible (but don't conflict with corner resize grips) when selected */
+.react-flow__node.selected .react-flow__handle.conn-handle {
+  opacity: 0.85;
+  pointer-events: all;
+}
+
+/* Glow on the handle itself */
+.react-flow__handle.conn-handle:hover {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 3px rgba(8, 8, 9, 0.9), 0 0 12px rgba(0, 200, 212, 0.6) !important;
+}

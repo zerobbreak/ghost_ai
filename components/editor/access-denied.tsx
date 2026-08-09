@@ -11,7 +11,7 @@ export function AccessDenied() {
         </div>
         <h1 className="text-lg font-semibold text-(--color-text-primary)">Access denied</h1>
         <p className="mt-2 text-sm text-(--color-text-muted)">
-          This project does not exist or you do not have access to it.
+          You don&apos;t have permission to view this project.
         </p>
         <Link href="/editor" className={buttonVariants({ className: "mt-6" })}>
           Back to projects

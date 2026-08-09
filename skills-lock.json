@@ -31,6 +31,12 @@
       "skillPath": "skills/core/clerk-setup/SKILL.md",
       "computedHash": "bbf0711ddcc8d8d0dcd148c0061ab83c7d66225a60a28caba62ef76e4384fa54"
     },
+    "liveblocks-best-practices": {
+      "source": "liveblocks/skills",
+      "sourceType": "github",
+      "skillPath": "skills/liveblocks-best-practices/SKILL.md",
+      "computedHash": "df4f54f66e81c580d25c5fee989768368837df694ab63c0f4a0fd70500cd16af"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",
@@ -42,6 +48,24 @@
       "sourceType": "github",
       "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
       "computedHash": "38fb49d3b57c46cba18b07a44254bd42c4c93903fda1d8cb683429615d32fec4"
+    },
+    "trigger-agents": {
+      "source": "triggerdotdev/skills",
+      "sourceType": "github",
+      "skillPath": "trigger-agents/SKILL.md",
+      "computedHash": "54171ea9ca464f537292f8d8aeec1a0bab2319e1030aeed2ffb5fc6ff07cf7a9"
+    },
+    "trigger-config": {
+      "source": "triggerdotdev/skills",
+      "sourceType": "github",
+      "skillPath": "trigger-config/SKILL.md",
+      "computedHash": "0da4d2718b736032a018bc8302959246c21af6ec21d64b42db429eca3c0c96fd"
+    },
+    "trigger-setup": {
+      "source": "triggerdotdev/skills",
+      "sourceType": "github",
+      "skillPath": "trigger-setup/SKILL.md",
+      "computedHash": "24e7a670526144a278a7d0c9c7df2204408d3c9894aae290f1e9a3c4664a863b"
     }
   }
 }

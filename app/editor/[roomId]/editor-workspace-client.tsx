@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquareText } from "lucide-react";
+import { AiSidebar } from "@/components/editor/ai-sidebar";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { ProjectDialogs } from "@/components/editor/project-dialogs";
 import { ShareDialog } from "@/components/editor/share-dialog";
+import { CanvasWrapper } from "@/components/editor/canvas-wrapper";
+import { EditorRoomProvider } from "@/components/editor/editor-room-provider";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import type { SidebarProject } from "@/lib/projects";
 
@@ -27,12 +29,18 @@ export function EditorWorkspaceClient({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isMermaidOpen, setIsMermaidOpen] = useState(false);
   const [owned, setOwned] = useState(ownedProjects);
   const [shared, setShared] = useState(sharedProjects);
 
   useEffect(() => {
-    setOwned(ownedProjects);
-    setShared(sharedProjects);
+    const syncTimer = window.setTimeout(() => {
+      setOwned(ownedProjects);
+      setShared(sharedProjects);
+    }, 0);
+
+    return () => window.clearTimeout(syncTimer);
   }, [ownedProjects, sharedProjects]);
 
   const actions = useProjectActions({
@@ -48,6 +56,7 @@ export function EditorWorkspaceClient({
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-(--color-bg-base)">
       <EditorNavbar
+        context="workspace"
         isSidebarOpen={isSidebarOpen}
         onSidebarToggle={() => setIsSidebarOpen((prev) => !prev)}
         projectName={projectName}
@@ -55,6 +64,8 @@ export function EditorWorkspaceClient({
         isAiSidebarOpen={isAiSidebarOpen}
         onAiSidebarToggle={() => setIsAiSidebarOpen((prev) => !prev)}
         onShareClick={() => setIsShareOpen(true)}
+        onTemplatesClick={() => setIsTemplatesOpen(true)}
+        onMermaidImportClick={() => setIsMermaidOpen(true)}
       />
 
       <ProjectSidebar
@@ -68,34 +79,25 @@ export function EditorWorkspaceClient({
         onDeleteProject={actions.openDelete}
       />
 
-      <main className="absolute inset-0 top-12 flex overflow-hidden">
-        <section className="flex flex-1 items-center justify-center bg-(--color-bg-base)">
-          <div className="text-center">
-            <h1 className="text-lg font-semibold text-(--color-text-primary)">Canvas coming soon</h1>
-            <p className="mt-2 text-sm text-(--color-text-muted)">
-              Real-time editing will be added in the next feature.
-            </p>
-          </div>
-        </section>
-      </main>
+      <EditorRoomProvider roomId={projectId}>
+        <main className="absolute inset-0 top-12 flex overflow-hidden">
+          <section className="flex flex-1 overflow-hidden">
+            <CanvasWrapper
+              roomId={projectId}
+              isTemplatesOpen={isTemplatesOpen}
+              onTemplatesOpenChange={setIsTemplatesOpen}
+              isMermaidOpen={isMermaidOpen}
+              onMermaidOpenChange={setIsMermaidOpen}
+            />
+          </section>
+        </main>
 
-      <aside
-        className={[
-          "absolute bottom-0 right-0 top-12 z-50 flex w-80 flex-col border-l border-(--color-border-default) bg-(--color-bg-surface)",
-          "transition-transform duration-200 ease-in-out",
-          isAiSidebarOpen ? "translate-x-0" : "translate-x-full",
-        ].join(" ")}
-      >
-        <div className="flex h-12 items-center gap-2 border-b border-(--color-border-default) px-4">
-          <MessageSquareText className="h-4 w-4 text-(--color-text-muted)" />
-          <p className="text-sm font-medium text-(--color-text-primary)">AI Assistant</p>
-        </div>
-        <div className="flex flex-1 items-center justify-center px-4 text-center">
-          <p className="text-sm text-(--color-text-muted)">
-            AI chat sidebar placeholder for upcoming features.
-          </p>
-        </div>
-      </aside>
+        <AiSidebar
+          isOpen={isAiSidebarOpen}
+          onClose={() => setIsAiSidebarOpen(false)}
+          projectId={projectId}
+        />
+      </EditorRoomProvider>
 
       <ProjectDialogs
         dialog={actions.dialog}

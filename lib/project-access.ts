@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 export interface CurrentIdentity {
   userId: string | null;
   primaryEmail: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
 }
 
 export interface AccessibleProject {
@@ -12,18 +14,72 @@ export interface AccessibleProject {
   ownerId: string;
 }
 
-export async function getCurrentIdentity(): Promise<CurrentIdentity> {
-  const { userId } = await auth();
+interface GetCurrentIdentityOptions {
+  loadProfile?: boolean;
+}
 
-  if (!userId) {
-    return { userId: null, primaryEmail: null };
+function getStringClaim(
+  claims: Record<string, unknown> | null | undefined,
+  keys: string[]
+): string | null {
+  if (!claims) return null;
+
+  for (const key of keys) {
+    const value = claims[key];
+    if (typeof value === "string" && value.trim()) return value;
   }
 
-  const user = await currentUser();
-  const primaryEmail =
-    user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses[0]?.emailAddress ?? null;
+  return null;
+}
 
-  return { userId, primaryEmail };
+export async function getCurrentIdentity(
+  options: GetCurrentIdentityOptions = {}
+): Promise<CurrentIdentity> {
+  const { userId, sessionClaims } = await auth();
+
+  if (!userId) {
+    return {
+      userId: null,
+      primaryEmail: null,
+      displayName: null,
+      avatarUrl: null,
+    };
+  }
+
+  const claims = sessionClaims as Record<string, unknown> | null | undefined;
+  let primaryEmail = getStringClaim(claims, [
+    "email",
+    "email_address",
+    "primary_email",
+    "primary_email_address",
+  ]);
+  const nameFromParts = [
+    getStringClaim(claims, ["first_name"]),
+    getStringClaim(claims, ["last_name"]),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  let displayName =
+    getStringClaim(claims, ["name", "full_name"]) || nameFromParts || null;
+  let avatarUrl = getStringClaim(claims, ["image_url", "picture", "avatar_url"]);
+
+  if (options.loadProfile === false) {
+    return { userId, primaryEmail, displayName, avatarUrl };
+  }
+
+  try {
+    const user = await currentUser();
+    primaryEmail =
+      user?.primaryEmailAddress?.emailAddress ??
+      user?.emailAddresses[0]?.emailAddress ??
+      primaryEmail;
+    displayName = user?.fullName ?? user?.firstName ?? primaryEmail ?? displayName;
+    avatarUrl = user?.imageUrl ?? avatarUrl;
+  } catch {
+    // Clerk API unreachable — keep session-claim values so auth routes can still respond.
+  }
+
+  return { userId, primaryEmail, displayName, avatarUrl };
 }
 
 export async function getAccessibleProjectById(
@@ -67,4 +123,12 @@ export async function hasProjectAccess(
 ): Promise<boolean> {
   const project = await getAccessibleProjectById(projectId, identity);
   return Boolean(project);
+}
+
+export async function projectExistsById(projectId: string): Promise<boolean> {
+  const row = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { id: true },
+  });
+  return row !== null;
 }
