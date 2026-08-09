@@ -60,7 +60,7 @@ export function EditorRoomProvider({
   ),
 }: EditorRoomProviderProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={16}>
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={80}>
       <RoomProvider
         id={roomId}
         initialPresence={{ cursor: null, thinking: false }}

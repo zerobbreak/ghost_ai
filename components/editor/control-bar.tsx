@@ -11,6 +11,7 @@ import {
   Loader2,
   Check,
   AlertCircle,
+  LayoutGrid,
 } from "lucide-react";
 import type { SaveStatus } from "@/hooks/use-canvas-autosave";
 
@@ -23,9 +24,16 @@ interface ViewportActions {
 interface ControlBarProps {
   rfInstance: ViewportActions | null;
   saveStatus?: SaveStatus;
+  onTidyLayout?: () => void;
+  tidyDisabled?: boolean;
 }
 
-export function ControlBar({ rfInstance, saveStatus = "idle" }: ControlBarProps) {
+export function ControlBar({
+  rfInstance,
+  saveStatus = "idle",
+  onTidyLayout,
+  tidyDisabled = false,
+}: ControlBarProps) {
   const { undo, redo } = useHistory();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
@@ -71,6 +79,19 @@ export function ControlBar({ rfInstance, saveStatus = "idle" }: ControlBarProps)
           <Redo2 size={14} />
         </ControlButton>
       </div>
+
+      {onTidyLayout ? (
+        <>
+          <div className="mx-1.5 h-4 w-px bg-white/15" />
+          <ControlButton
+            onClick={onTidyLayout}
+            disabled={tidyDisabled}
+            title="Tidy layout"
+          >
+            <LayoutGrid size={14} />
+          </ControlButton>
+        </>
+      ) : null}
 
       {saveStatus !== "idle" && (
         <>

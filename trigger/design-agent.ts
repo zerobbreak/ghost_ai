@@ -1,6 +1,8 @@
 import { task, logger } from "@trigger.dev/sdk";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateDesignPlan } from "@/lib/design-agent-generate";
+import { generateDesignResult } from "@/lib/design-agent-generate";
+import { formatClarificationMessage } from "@/lib/ai-clarification";
+import { layoutCanvas, layoutSubgraph } from "@/lib/auto-layout";
 import {
   applyDesignActions,
   AI_CURSOR_HOME,
@@ -112,6 +114,23 @@ function applyActionToWorkingState(
   }
 }
 
+/**
+ * Only positions nodes added in this run — existing nodes the user may have
+ * manually placed/dragged are left untouched.
+ */
+function mergeSubgraphLayout(
+  workingNodes: CanvasNode[],
+  workingEdges: CanvasEdge[],
+  addedNodeIds: Set<string>,
+): CanvasNode[] {
+  const existing = workingNodes.filter((node) => !addedNodeIds.has(node.id));
+  const added = workingNodes.filter((node) => addedNodeIds.has(node.id));
+  const laidOutAdded = layoutSubgraph(existing, added, workingEdges, "TB");
+  const laidOutById = new Map(laidOutAdded.map((node) => [node.id, node]));
+
+  return workingNodes.map((node) => laidOutById.get(node.id) ?? node);
+}
+
 export const designAgentTask = task({
   id: "design-agent",
   retry: {
@@ -145,11 +164,34 @@ export const designAgentTask = task({
         text: "Interpreting your prompt…",
       });
 
-      const plan = await generateDesignPlan({
+      const result = await generateDesignResult({
         model: createGeminiModel(),
         system: buildDesignSystemPrompt(),
         prompt: buildDesignUserPrompt(prompt, nodes, edges),
       });
+
+      if (result.kind === "clarification") {
+        logger.log("Design agent needs clarification", {
+          roomId,
+          questions: result.questions,
+        });
+
+        const message = formatClarificationMessage(result.questions);
+
+        await publishAiStatus(roomId, {
+          phase: "complete",
+          text: "Ghost AI needs a bit more detail.",
+        });
+
+        return {
+          summary: message,
+          actionCount: 0,
+          needsClarification: true,
+          questions: result.questions,
+        };
+      }
+
+      const plan = result;
       logger.log("Design plan generated", {
         summary: plan.summary,
         actionCount: plan.actions.length,
@@ -163,34 +205,76 @@ export const designAgentTask = task({
       let workingNodes = [...nodes];
       let workingEdges = [...edges];
 
-      for (let index = 0; index < plan.actions.length; index++) {
-        const action = plan.actions[index];
+      const ACTION_BATCH_SIZE = 3;
+
+      for (
+        let batchStart = 0;
+        batchStart < plan.actions.length;
+        batchStart += ACTION_BATCH_SIZE
+      ) {
+        const batch = plan.actions.slice(
+          batchStart,
+          batchStart + ACTION_BATCH_SIZE,
+        );
+        const lastAction = batch[batch.length - 1];
 
         await updateAiPresence(roomId, {
-          cursor: cursorForAction(action, workingNodes, workingEdges),
+          cursor: cursorForAction(lastAction, workingNodes, workingEdges),
           thinking: true,
         });
-        await applyDesignActions(roomId, [action]);
+        await applyDesignActions(roomId, batch);
 
-        const nextState = applyActionToWorkingState(
-          action,
-          workingNodes,
-          workingEdges,
-        );
-        workingNodes = nextState.nodes;
-        workingEdges = nextState.edges;
-
-        const isProgressMilestone =
-          index === 0 ||
-          (index + 1) % 4 === 0 ||
-          index === plan.actions.length - 1;
-
-        if (isProgressMilestone) {
-          await publishAiStatus(roomId, {
-            phase: "processing",
-            text: `Applied ${index + 1} of ${plan.actions.length} changes…`,
-          });
+        for (const action of batch) {
+          const nextState = applyActionToWorkingState(
+            action,
+            workingNodes,
+            workingEdges,
+          );
+          workingNodes = nextState.nodes;
+          workingEdges = nextState.edges;
         }
+
+        const appliedCount = batchStart + batch.length;
+        await publishAiStatus(roomId, {
+          phase: "processing",
+          text: `Applied ${appliedCount} of ${plan.actions.length} changes…`,
+        });
+      }
+
+      const addedNodeIds = new Set(
+        plan.actions
+          .filter((action) => action.type === "addNode")
+          .map((action) => action.node.id),
+      );
+
+      const layoutedNodes =
+        nodes.length === 0
+          ? layoutCanvas(workingNodes, workingEdges, "TB")
+          : mergeSubgraphLayout(workingNodes, workingEdges, addedNodeIds);
+
+      const positionChanges = layoutedNodes.filter((node) => {
+        const original = workingNodes.find((n) => n.id === node.id);
+        return (
+          !original ||
+          node.position.x !== original.position.x ||
+          node.position.y !== original.position.y
+        );
+      });
+
+      if (positionChanges.length > 0) {
+        await publishAiStatus(roomId, {
+          phase: "processing",
+          text: "Arranging layout…",
+        });
+
+        await applyDesignActions(
+          roomId,
+          positionChanges.map((node) => ({
+            type: "moveNode" as const,
+            id: node.id,
+            position: node.position,
+          })),
+        );
       }
 
       await publishAiStatus(roomId, {

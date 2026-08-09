@@ -5,11 +5,13 @@ const looseRecordSchema = z.record(z.string(), z.unknown());
 
 /**
  * Permissive schema for Gemini structured output.
- * Strict validation happens in normalizeDesignPlan after parsing.
+ * Strict validation happens in normalizeDesignResult after parsing.
  */
 export const llmDesignPlanSchema = z.object({
+  status: z.enum(["ready", "needs_clarification"]).optional(),
   summary: z.string().optional(),
-  actions: z.array(looseRecordSchema),
+  actions: z.array(looseRecordSchema).optional(),
+  questions: z.array(z.string()).optional(),
 });
 
 export type LlmDesignPlan = z.infer<typeof llmDesignPlanSchema>;
@@ -58,6 +60,17 @@ export interface DesignPlan {
   summary: string;
   actions: DesignAction[];
 }
+
+export interface ClarificationRequest {
+  questions: string[];
+}
+
+export type DesignAgentResult =
+  | ({ kind: "plan" } & DesignPlan)
+  | ({ kind: "clarification" } & ClarificationRequest);
+
+/** Cap so a confused model can't turn a chat reply into an interrogation. */
+const MAX_CLARIFYING_QUESTIONS = 4;
 
 function isNodeShape(value: unknown): value is NodeShape {
   return typeof value === "string" && NODE_SHAPES.includes(value as NodeShape);
@@ -273,12 +286,38 @@ function normalizeLooseAction(
   }
 }
 
-export function normalizeDesignPlan(raw: LlmDesignPlan): DesignPlan {
-  const actions = raw.actions
+function normalizeQuestions(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+
+  const seen = new Set<string>();
+  const questions: string[] = [];
+
+  for (const entry of raw) {
+    const question = asString(entry);
+    if (!question || seen.has(question)) continue;
+    seen.add(question);
+    questions.push(question);
+    if (questions.length >= MAX_CLARIFYING_QUESTIONS) break;
+  }
+
+  return questions;
+}
+
+export function normalizeDesignResult(raw: LlmDesignPlan): DesignAgentResult {
+  const questions = normalizeQuestions(raw.questions);
+
+  if (raw.status === "needs_clarification" && questions.length > 0) {
+    return { kind: "clarification", questions };
+  }
+
+  const actions = (raw.actions ?? [])
     .map((action, index) => normalizeLooseAction(action, index))
     .filter((action): action is DesignAction => action !== null);
 
   if (actions.length === 0) {
+    if (questions.length > 0) {
+      return { kind: "clarification", questions };
+    }
     throw new Error("Model returned no valid canvas actions");
   }
 
@@ -287,5 +326,5 @@ export function normalizeDesignPlan(raw: LlmDesignPlan): DesignPlan {
       ? raw.summary.trim()
       : "Applied design changes.";
 
-  return { summary, actions };
+  return { kind: "plan", summary, actions };
 }

@@ -6,6 +6,7 @@ import {
   NODE_COLORS,
   NODE_SHAPES,
 } from "@/types/canvas";
+import { SHAPE_DEFAULTS } from "@/lib/shape-defaults";
 import type { DesignAction } from "@/lib/design-agent-schema";
 import {
   aiChatFeedPayloadSchema,
@@ -28,15 +29,6 @@ export const AI_AGENT_INFO = {
 export const AI_CURSOR_HOME = { x: 48, y: 56 } as const;
 
 export type AiStatusMessage = AiStatusFeedPayload;
-
-const SHAPE_DEFAULTS: Record<NodeShape, { width: number; height: number }> = {
-  rectangle: { width: 200, height: 80 },
-  diamond: { width: 160, height: 120 },
-  circle: { width: 100, height: 100 },
-  pill: { width: 180, height: 60 },
-  cylinder: { width: 120, height: 100 },
-  hexagon: { width: 140, height: 120 },
-};
 
 function isNodeShape(value: unknown): value is NodeShape {
   return typeof value === "string" && NODE_SHAPES.includes(value as NodeShape);

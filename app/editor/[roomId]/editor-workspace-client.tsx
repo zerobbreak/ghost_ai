@@ -30,6 +30,7 @@ export function EditorWorkspaceClient({
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isMermaidOpen, setIsMermaidOpen] = useState(false);
   const [owned, setOwned] = useState(ownedProjects);
   const [shared, setShared] = useState(sharedProjects);
 
@@ -64,6 +65,7 @@ export function EditorWorkspaceClient({
         onAiSidebarToggle={() => setIsAiSidebarOpen((prev) => !prev)}
         onShareClick={() => setIsShareOpen(true)}
         onTemplatesClick={() => setIsTemplatesOpen(true)}
+        onMermaidImportClick={() => setIsMermaidOpen(true)}
       />
 
       <ProjectSidebar
@@ -84,6 +86,8 @@ export function EditorWorkspaceClient({
               roomId={projectId}
               isTemplatesOpen={isTemplatesOpen}
               onTemplatesOpenChange={setIsTemplatesOpen}
+              isMermaidOpen={isMermaidOpen}
+              onMermaidOpenChange={setIsMermaidOpen}
             />
           </section>
         </main>

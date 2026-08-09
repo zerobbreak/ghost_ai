@@ -27,12 +27,14 @@ export async function getProjectsForIdentity(
       where: { ownerId: identity.userId },
       select: { id: true, name: true },
       orderBy: { createdAt: "desc" },
+      take: 200,
     }),
     identity.primaryEmail
       ? prisma.project.findMany({
           where: { collaborators: { some: { email: identity.primaryEmail } } },
           select: { id: true, name: true },
           orderBy: { createdAt: "desc" },
+          take: 200,
         })
       : [],
   ]);

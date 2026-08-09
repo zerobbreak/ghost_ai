@@ -4,6 +4,7 @@ import { useEffect, useState, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import type { NodeShape } from "@/types/canvas";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
+import { SHAPE_DEFAULTS } from "@/lib/shape-defaults";
 
 export interface ShapeDragPayload {
   shape: NodeShape;
@@ -13,15 +14,6 @@ export interface ShapeDragPayload {
 
 export const DRAG_TYPE = "application/canvas-shape";
 export const DRAG_FALLBACK_TYPE = "text/plain";
-
-const SHAPE_DEFAULTS: Record<NodeShape, { width: number; height: number }> = {
-  rectangle: { width: 200, height: 80 },
-  diamond: { width: 160, height: 120 },
-  circle: { width: 100, height: 100 },
-  pill: { width: 180, height: 60 },
-  cylinder: { width: 120, height: 100 },
-  hexagon: { width: 140, height: 120 },
-};
 
 const PREVIEW_SCALE = 0.55;
 
@@ -44,7 +36,7 @@ function PreviewShape({ shape, fill, stroke }: PreviewShapeProps) {
           height: "100%",
           backgroundColor: fill,
           border: `1.5px solid ${stroke}`,
-          borderRadius: "4px",
+          borderRadius: "6px",
         }}
       />
     );

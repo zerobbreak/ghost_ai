@@ -32,9 +32,11 @@ import { LiveCursors } from "./live-cursors";
 import { PresenceAvatarGroup } from "./presence-avatar-group";
 import { AiStatusPanel } from "./ai-status-panel";
 import { StarterTemplatesModal } from "./starter-templates-modal";
+import { MermaidImportModal } from "./mermaid-import-modal";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useCanvasAutosave, type SaveStatus } from "@/hooks/use-canvas-autosave";
 import { safeParseJson } from "@/lib/canvas-snapshot";
+import { layoutCanvas } from "@/lib/auto-layout";
 import { DEFAULT_NODE_COLOR } from "@/types/canvas";
 import type { CanvasNode, CanvasEdge } from "@/types/canvas";
 import type { CanvasTemplate } from "./starter-templates";
@@ -76,12 +78,16 @@ interface LiveblocksCanvasProps {
   projectId: string;
   isTemplatesOpen?: boolean;
   onTemplatesOpenChange?: (open: boolean) => void;
+  isMermaidOpen?: boolean;
+  onMermaidOpenChange?: (open: boolean) => void;
 }
 
 export function LiveblocksCanvas({
   projectId,
   isTemplatesOpen = false,
   onTemplatesOpenChange,
+  isMermaidOpen = false,
+  onMermaidOpenChange,
 }: LiveblocksCanvasProps) {
   const { nodes, edges, onNodesChange, onEdgesChange, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
@@ -267,6 +273,23 @@ export function LiveblocksCanvas({
     [rfInstance, onNodesChange],
   );
 
+  const handleTidyLayout = useCallback(() => {
+    const laidOut = layoutCanvas(nodes, edges, "TB");
+    const changed = laidOut.filter((node, index) => {
+      const original = nodes[index];
+      return (
+        node.position.x !== original.position.x ||
+        node.position.y !== original.position.y
+      );
+    });
+    if (changed.length === 0) return;
+
+    onNodesChange(
+      changed.map((node) => ({ id: node.id, type: "replace" as const, item: node })),
+    );
+    setTimeout(() => rfInstance?.fitView({ duration: 400 }), 80);
+  }, [nodes, edges, onNodesChange, rfInstance]);
+
   const importTemplate = useCallback(
     (template: CanvasTemplate) => {
       onNodesChange([
@@ -276,6 +299,21 @@ export function LiveblocksCanvas({
       onEdgesChange([
         ...edges.map((ed) => ({ type: "remove" as const, id: ed.id })),
         ...template.edges.map((ed) => ({ type: "add" as const, item: ed })),
+      ]);
+      setTimeout(() => rfInstance?.fitView({ duration: 400 }), 80);
+    },
+    [nodes, edges, onNodesChange, onEdgesChange, rfInstance],
+  );
+
+  const importMermaidDiagram = useCallback(
+    (importedNodes: CanvasNode[], importedEdges: CanvasEdge[]) => {
+      onNodesChange([
+        ...nodes.map((n) => ({ type: "remove" as const, id: n.id })),
+        ...importedNodes.map((n) => ({ type: "add" as const, item: n })),
+      ]);
+      onEdgesChange([
+        ...edges.map((ed) => ({ type: "remove" as const, id: ed.id })),
+        ...importedEdges.map((ed) => ({ type: "add" as const, item: ed })),
       ]);
       setTimeout(() => rfInstance?.fitView({ duration: 400 }), 80);
     },
@@ -330,6 +368,11 @@ export function LiveblocksCanvas({
         onOpenChange={(open) => onTemplatesOpenChange?.(open)}
         onImport={importTemplate}
       />
+      <MermaidImportModal
+        open={isMermaidOpen}
+        onOpenChange={(open) => onMermaidOpenChange?.(open)}
+        onImport={importMermaidDiagram}
+      />
       <div
         ref={canvasRef}
         className="relative h-full w-full"
@@ -363,7 +406,12 @@ export function LiveblocksCanvas({
             <AiStatusPanel />
           </Panel>
           <Panel position="bottom-left" className="z-50 mb-2 ml-2">
-            <ControlBar rfInstance={rfInstance} saveStatus={saveStatus} />
+            <ControlBar
+              rfInstance={rfInstance}
+              saveStatus={saveStatus}
+              onTidyLayout={handleTidyLayout}
+              tidyDisabled={nodes.length === 0}
+            />
           </Panel>
           <Panel position="bottom-center" className="z-50 mb-2">
             <ShapePanel onShapeDrop={addShapeNode} />

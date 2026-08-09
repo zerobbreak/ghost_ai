@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 26: AI Chat Functional — Complete
+- Feature 29: Spec UI Integration — Complete
 
 ## Current Goal
 
@@ -40,6 +40,9 @@ Update this file whenever the current phase, active feature, or implementation s
 - `24-ai-presence-state` — Shared `ai-status-feed` with Zod-validated payloads in `types/tasks.ts`; `EditorRoomProvider` hoists Liveblocks room context for canvas + AI sidebar; sidebar shows working indicator, disables chat input, and loads send button during generation; cursor badges show thinking spinners; `pnpm run build` passes.
 - `25-sidebar-chat-feed` — Room-scoped `ai-chat` Liveblocks feed with Zod-validated payloads (`sender`, `role`, `content`, `timestamp`); `use-ai-chat-feed` hook subscribes, validates, and sends messages; AI sidebar renders collaborative chat with sender/timestamp/content, send-error state, and input cleared on success; kept separate from `ai-status-feed`; `npm run build` passes.
 - `26-ai-chat-functional` — AI sidebar submit pushes user messages then calls `POST /api/ai/design` + token route; `use-ai-design-run` tracks runs via `useRealtimeRun`; completion posts assistant replies to `ai-chat`; compact green status strip above input during active runs; input/button locked while generating; errors surface in chat feed; canvas updates stay Liveblocks-driven; `pnpm run build` passes.
+- `27-spec-generation-flow` — `POST /api/ai/spec` validates canvas/chat input, resolves project access from `roomId`, triggers `generate-spec`, and persists `TaskRun` ownership; `POST /api/ai/spec/token` issues 1-hour run-scoped public tokens for the owner; `trigger/generate-spec.ts` uses Gemini + Zod + metadata progress and returns Markdown `{ spec }` output; `pnpm run build` passes.
+- `28-spec-persistence-download` — `ProjectSpec` Prisma model (metadata only); `lib/spec-persistence.ts` uploads Markdown to Vercel Blob at `specs/{projectId}/{specId}.md` and stores `filePath`; `generate-spec` task persists after generation and returns `specId`; `GET /api/projects/[projectId]/specs/[specId]/download` enforces auth + project access and returns a Markdown attachment; `pnpm run build` passes.
+- `29-spec-ui-integration` — `GET /api/projects/[projectId]/specs` lists project spec metadata; AI sidebar Specs tab loads clickable list (filename + createdAt), preview modal fetches content via download route and renders Markdown (`react-markdown`), download action on list rows and modal; `pnpm run build` passes.
 
 ## In Progress
 
@@ -82,8 +85,10 @@ Update this file whenever the current phase, active feature, or implementation s
 - **AI status feed validation** — `types/tasks.ts` defines the `ai-status-feed` payload schema (optional `text`, required `phase`); client hooks validate before display and server publish validates on write.
 - **AI chat feed validation** — `types/tasks.ts` defines the `ai-chat` payload schema (`sender`, `role`, `content`, `timestamp`); `use-ai-chat-feed` validates before render and client sends use the same schema; feed stays separate from `ai-status-feed`.
 - **Design run client tracking** — sidebar stores `runId` + public token locally and subscribes with `@trigger.dev/react-hooks` `useRealtimeRun`; token is fetched from existing `/api/ai/design/token` when not inlined on the design response; completion assistant messages are written to `ai-chat` from the submitting client only.
+- **Spec generation backend** — `POST /api/ai/spec` resolves `projectId` from authenticated `roomId` access (never client-supplied); `generate-spec` task returns Markdown in run output with metadata progress; spec tokens expire after 1 hour.
+- **Spec artifact storage** — generated Markdown is uploaded to Vercel Blob at `specs/{projectId}/{specId}.md`; `ProjectSpec` stores metadata + `filePath` only; download route fetches via private Blob access after project membership check.
+- **Spec UI read paths** — sidebar lists specs from `GET /api/projects/[projectId]/specs`; preview and download both use the existing download route (fetch for modal, anchor for file save); spec content is not retained after the preview modal closes.
 
 ## Session Notes
 
-- Feature 26 follow-up: design agent now moves ephemeral AI cursor per canvas action via `cursorForAction`; client animates cursor transitions.
-- Design agent edge labeling: `updateEdgeData` action labels existing connections; new `addEdge` actions include labels by default unless the user opts out.
+- Feature 29 complete: Specs tab wired with list, Markdown preview modal, and download. Generate Spec button remains a shell for a future feature.

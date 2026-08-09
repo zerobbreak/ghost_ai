@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutTemplate, PanelLeftClose, PanelLeftOpen, Share2, Sparkles } from "lucide-react";
+import { Code2, LayoutTemplate, PanelLeftClose, PanelLeftOpen, Share2, Sparkles } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,7 @@ interface EditorNavbarProps {
   onAiSidebarToggle?: () => void;
   onShareClick?: () => void;
   onTemplatesClick?: () => void;
+  onMermaidImportClick?: () => void;
 }
 
 export function EditorNavbar({
@@ -26,6 +27,7 @@ export function EditorNavbar({
   onAiSidebarToggle,
   onShareClick,
   onTemplatesClick,
+  onMermaidImportClick,
 }: EditorNavbarProps) {
   const showUserButton = context === "home";
 
@@ -70,6 +72,16 @@ export function EditorNavbar({
             >
               <LayoutTemplate className="h-4 w-4" />
               Templates
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMermaidImportClick}
+              className="h-8 gap-1.5 text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-bg-elevated)"
+              title="Import from Mermaid"
+            >
+              <Code2 className="h-4 w-4" />
+              Import
             </Button>
             <Button
               variant="outline"

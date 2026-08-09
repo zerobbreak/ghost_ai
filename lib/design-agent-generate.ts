@@ -1,8 +1,8 @@
 import { generateObject, generateText, type LanguageModel } from "ai";
 import {
   llmDesignPlanSchema,
-  normalizeDesignPlan,
-  type DesignPlan,
+  normalizeDesignResult,
+  type DesignAgentResult,
 } from "@/lib/design-agent-schema";
 import { safeParseJson } from "@/lib/canvas-snapshot";
 
@@ -19,11 +19,11 @@ function extractJsonObject(text: string): unknown {
   return parsed;
 }
 
-export async function generateDesignPlan(options: {
+export async function generateDesignResult(options: {
   model: LanguageModel;
   system: string;
   prompt: string;
-}): Promise<DesignPlan> {
+}): Promise<DesignAgentResult> {
   const { model, system, prompt } = options;
 
   try {
@@ -32,19 +32,19 @@ export async function generateDesignPlan(options: {
       schema: llmDesignPlanSchema,
       schemaName: "DesignPlan",
       schemaDescription:
-        "Ordered canvas mutations: add/move/resize/update/delete nodes and add/update/delete edges.",
+        "Either ordered canvas mutations (add/move/resize/update/delete nodes and edges), or a needs_clarification status with questions when the request is too ambiguous to design.",
       system,
       prompt,
       maxRetries: 2,
     });
 
-    return normalizeDesignPlan(object);
+    return normalizeDesignResult(object);
   } catch (structuredError) {
     const { text } = await generateText({
       model,
       system: `${system}
 
-Return only one JSON object with "summary" and "actions". Do not use markdown code fences.`,
+Return only one JSON object: either "summary" and "actions", or "status": "needs_clarification" and "questions". Do not use markdown code fences.`,
       prompt,
     });
 
@@ -53,6 +53,6 @@ Return only one JSON object with "summary" and "actions". Do not use markdown co
       throw structuredError;
     }
 
-    return normalizeDesignPlan(parsed.data);
+    return normalizeDesignResult(parsed.data);
   }
 }

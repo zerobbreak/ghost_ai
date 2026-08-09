@@ -12,10 +12,12 @@ import {
 import {
   EdgeLabelRenderer,
   getSmoothStepPath,
+  useInternalNode,
   type EdgeProps,
 } from "@xyflow/react";
 import { resolveEdgeLabelPosition } from "@/lib/edge-label-position";
-import type { CanvasEdge } from "@/types/canvas";
+import { getFloatingEdgeParams } from "@/lib/floating-edge";
+import type { CanvasEdge, CanvasNode } from "@/types/canvas";
 import { useCanvasActions } from "./canvas-actions-context";
 
 // Slightly dimmed at rest; full opacity when hovered or selected
@@ -25,6 +27,8 @@ const SELECTED_STROKE = "#00c8d4";
 
 function CanvasEdgeComponent({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -42,13 +46,24 @@ function CanvasEdgeComponent({
 
   const label = data?.label ?? "";
 
+  // This app's nodes expose 4 same-typed connection ports with no fixed
+  // handle chosen per edge, so derive the actual best side from live node
+  // geometry rather than trusting React Flow's handle-based defaults (which
+  // otherwise collapse to the same port for every edge).
+  const sourceNode = useInternalNode<CanvasNode>(source);
+  const targetNode = useInternalNode<CanvasNode>(target);
+  const floating =
+    sourceNode && targetNode
+      ? getFloatingEdgeParams(sourceNode, targetNode)
+      : null;
+
   const [edgePath, pathLabelX, pathLabelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
+    sourceX: floating?.sx ?? sourceX,
+    sourceY: floating?.sy ?? sourceY,
+    sourcePosition: floating?.sourcePosition ?? sourcePosition,
+    targetX: floating?.tx ?? targetX,
+    targetY: floating?.ty ?? targetY,
+    targetPosition: floating?.targetPosition ?? targetPosition,
     borderRadius: 8,
   });
 
@@ -152,21 +167,21 @@ function CanvasEdgeComponent({
               onMouseDown={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="nodrag nopan min-w-[60px] rounded-full border border-[#00c8d4] bg-[#18181c] px-2.5 py-1 text-center text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] outline-none"
+              className="nodrag nopan min-w-[60px] rounded-md border border-[#00c8d4] bg-[#18181c] px-2.5 py-1 text-center text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] outline-none"
               style={{
                 width: `${Math.max(60, draft.length * 8 + 24)}px`,
               }}
             />
           ) : label ? (
             <span
-              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:border-[#00c8d4]"
+              className="cursor-pointer rounded-md border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#e0e0f0] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:border-[#00c8d4]"
               title="Double-click to edit"
             >
               {label}
             </span>
           ) : (selected || hovered) ? (
             <span
-              className="cursor-pointer rounded-full border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#454560] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:text-[#a0a0b8]"
+              className="cursor-pointer rounded-md border border-[#2a2a38] bg-[#18181c] px-2.5 py-1 text-xs text-[#454560] shadow-[0_0_0_4px_var(--bg-base)] transition-colors hover:text-[#a0a0b8]"
               title="Double-click to add label"
             >
               + Add label
@@ -187,36 +202,36 @@ export function EdgeMarkerDefs() {
       <defs>
         <marker
           id="arrow-dim"
-          markerWidth="8"
-          markerHeight="8"
-          refX="6"
+          markerWidth="7"
+          markerHeight="7"
+          refX="5.5"
           refY="3"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L8,3 z" fill="rgba(180,180,200,0.45)" />
+          <path d="M0,0 L0,6 L6.5,3 z" fill="rgba(180,180,200,0.45)" />
         </marker>
         <marker
           id="arrow-bright"
-          markerWidth="8"
-          markerHeight="8"
-          refX="6"
+          markerWidth="7"
+          markerHeight="7"
+          refX="5.5"
           refY="3"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L8,3 z" fill="rgba(220,220,240,0.90)" />
+          <path d="M0,0 L0,6 L6.5,3 z" fill="rgba(220,220,240,0.90)" />
         </marker>
         <marker
           id="arrow-selected"
-          markerWidth="8"
-          markerHeight="8"
-          refX="6"
+          markerWidth="7"
+          markerHeight="7"
+          refX="5.5"
           refY="3"
           orient="auto"
           markerUnits="strokeWidth"
         >
-          <path d="M0,0 L0,6 L8,3 z" fill="#00c8d4" />
+          <path d="M0,0 L0,6 L6.5,3 z" fill="#00c8d4" />
         </marker>
       </defs>
     </svg>

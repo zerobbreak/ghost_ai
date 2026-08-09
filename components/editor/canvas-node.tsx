@@ -96,7 +96,7 @@ function Hexagon({ fill, stroke, sw }: SvgShapeProps) {
 const CSS_SHAPES = new Set<NodeShape>(["rectangle", "pill", "circle"]);
 
 function cssBorderRadius(shape: NodeShape): string {
-  if (shape === "rectangle") return "4px";
+  if (shape === "rectangle") return "6px";
   if (shape === "circle") return "50%";
   return "9999px"; // pill
 }
